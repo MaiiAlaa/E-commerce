@@ -26,7 +26,6 @@ public class UserController {
 
     @Autowired
     private UserServiceImp userServiceImp;
-    private UserServiceImp userService;
 
 
     @Autowired
@@ -45,10 +44,10 @@ public class UserController {
         }
 
         // Check if the user already exists
-        if (userService.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
+        if (userServiceImp.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
             response.put("message", "Username already exists");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } else if (userService.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
+        } else if (userServiceImp.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
             response.put("message", "Email already exists");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -61,7 +60,7 @@ public class UserController {
         user.setUsername(signUpRequestDTO.getUsername());
         user.setEmail(signUpRequestDTO.getEmail());
         user.setPasswordHash(signUpRequestDTO.getPassword());
-        userService.createUser(user);
+        userServiceImp.createUser(user);
         response.put("message", "User registered successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
