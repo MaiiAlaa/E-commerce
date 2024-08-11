@@ -1,5 +1,6 @@
 package org.example.e_commerce.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -37,6 +38,7 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryid", nullable = false)  // Use 'categoryid' as per your table schema
+    @JsonBackReference  // Prevents recursion by not serializing this side
     private Category category;
 
 }
