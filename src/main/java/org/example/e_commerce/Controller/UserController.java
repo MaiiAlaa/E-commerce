@@ -61,22 +61,56 @@ public class UserController {
                 // Log the token (optional, for debugging)
                 System.out.println("Generated Token: " + token);
 
-                // Set the token in the response
+                // Set the response data
                 response.setMessage("User authenticated successfully");
+                response.setStatusCode(HttpStatus.OK.value());
                 response.setToken(token);
 
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 response.setMessage("Invalid username or password");
+                response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
         } catch (Exception e) {
             e.printStackTrace();
             SignInResponseDTO response = new SignInResponseDTO();
             response.setMessage("Internal server error");
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+//    @PostMapping("/signin")
+//    public ResponseEntity<SignInResponseDTO> signIn(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
+//        try {
+//            boolean isAuthenticated = userServiceImp.authenticateUser(signInRequestDTO.getUsername(), signInRequestDTO.getPassword());
+//            SignInResponseDTO response = new SignInResponseDTO();
+//            if (isAuthenticated) {
+//                // Generate token
+//                String token = jwtUtil.generateToken(signInRequestDTO.getUsername());
+//
+//                // Log the token (optional, for debugging)
+//                System.out.println("Generated Token: " + token);
+//
+//                // Set the token in the response
+//                response.setMessage("User authenticated successfully");
+//                response.setToken(token);
+//
+//                return new ResponseEntity<>(response, HttpStatus.OK);
+//            } else {
+//                response.setMessage("Invalid username or password");
+//                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            SignInResponseDTO response = new SignInResponseDTO();
+//            response.setMessage("Internal server error");
+//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
+
 
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
