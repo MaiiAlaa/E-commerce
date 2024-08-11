@@ -48,9 +48,9 @@ public class FavoriteServiceImp implements FavoriteService {
     private FavoriteRequestDTO convertToDto(Favorite favorite) {
         return new FavoriteRequestDTO(
                 favorite.getFavoriteId(),
-                favorite.getUser().getUserId(),
-                favorite.getProduct() != null ? favorite.getProduct().getProductId() : null,
-                favorite.getCategory() != null ? favorite.getCategory().getCategoryId() : null,
+                favorite.getUser().getUserid(),
+                favorite.getProduct() != null ? favorite.getProduct().getProductid() : null,
+                favorite.getCategory() != null ? favorite.getCategory().getCategoryid() : null,
                 favorite.getCreatedAt()
         );
     }
