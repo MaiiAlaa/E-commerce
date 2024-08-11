@@ -28,7 +28,7 @@ public class FavoriteServiceImp implements FavoriteService {
 
     @Override
     public List<FavoriteRequestDTO> getAllFavoritesByUserId(Long userId) {
-        List<Favorite> favorites = favoriteRepository.findAllByUser_UserId(userId);
+        List<Favorite> favorites = favoriteRepository.findAllByUser_Userid(userId);
         return favorites.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -48,9 +48,9 @@ public class FavoriteServiceImp implements FavoriteService {
     private FavoriteRequestDTO convertToDto(Favorite favorite) {
         return new FavoriteRequestDTO(
                 favorite.getFavoriteId(),
-                favorite.getUser().getUserId(),
-                favorite.getProduct() != null ? favorite.getProduct().getProductId() : null,
-                favorite.getCategory() != null ? favorite.getCategory().getCategoryId() : null,
+                favorite.getUser().getUserid(),
+                favorite.getProduct() != null ? favorite.getProduct().getProductid() : null,
+                favorite.getCategory() != null ? favorite.getCategory().getCategoryid() : null,
                 favorite.getCreatedAt()
         );
     }
