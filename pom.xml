@@ -59,7 +59,7 @@
 
 		<!-- Hibernate JPA Implementation -->
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>6.1.0.Final</version>
 		</dependency>
@@ -121,6 +121,7 @@
 			<version>2.3.1</version>
 		</dependency>
 	</dependencies>
+
 
 	<repositories>
 		<repository>
