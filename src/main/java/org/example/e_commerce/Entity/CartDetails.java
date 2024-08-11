@@ -11,12 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cartDetails")
+@Table(name = "cartdetails")
 public class CartDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cartDetails_id")
+    @Column(name = "cartdetails_id")
     private Long cartDetailsId;
 
     @OneToOne
