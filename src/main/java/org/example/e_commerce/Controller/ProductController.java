@@ -3,12 +3,10 @@ package org.example.e_commerce.Controller;
 import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -21,8 +19,8 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/{categoryId}")
-    public List<ProductResponseDTO> getProductsByCategoryId(@PathVariable Long categoryId) {
-        return productService.getProductsByCategoryId(categoryId);
+    @GetMapping("/{id}")
+    public ProductResponseDTO getProductById(@PathVariable Long id) {
+        return productService.getProductById(id);
     }
 }
