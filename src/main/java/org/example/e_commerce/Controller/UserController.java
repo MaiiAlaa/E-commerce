@@ -60,7 +60,7 @@ public class UserController {
         user.setUsername(signUpRequestDTO.getUsername());
         user.setEmail(signUpRequestDTO.getEmail());
         user.setPasswordHash(signUpRequestDTO.getPassword());
-        userServiceImp.createUser(user);
+        userServiceImp.saveUser(user);
         response.put("message", "User registered successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

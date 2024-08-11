@@ -95,11 +95,6 @@ public class UserServiceImp implements UserService {
         return false;
     }
 
-
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
-
     @Override
     public Optional<User> getUserByUsername(String username) {
         try {
