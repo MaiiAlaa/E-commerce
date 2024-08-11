@@ -28,7 +28,7 @@ public class FavoriteServiceImp implements FavoriteService {
 
     @Override
     public List<FavoriteRequestDTO> getAllFavoritesByUserId(Long userId) {
-        List<Favorite> favorites = favoriteRepository.findAllByUser_UserId(userId);
+        List<Favorite> favorites = favoriteRepository.findAllByUser_Userid(userId);
         return favorites.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
