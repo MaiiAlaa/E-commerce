@@ -12,4 +12,7 @@ public interface UserService {
     User updateUser(long userid, User user);
     void deleteUser(long userid);
     boolean authenticateUser(String username, String password);
+    Optional<User> getUserByUsername(String username);
+
 }
+

@@ -94,4 +94,10 @@ public class UserServiceImp implements UserService {
         }
         return false;
     }
+
+    @Override
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 }
+
