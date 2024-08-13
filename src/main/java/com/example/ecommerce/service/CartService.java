@@ -80,6 +80,7 @@ public class CartService {
                 }
                 Product product = optionalProduct.get();
 
+
                 if (product.getStockQuantity() < productRequest.getQuantity()) {
                     return new SignUpResponseDTO("Insufficient stock for product: " + productRequest.getProductId(), (long) HttpStatus.BAD_REQUEST.value());
                     //double check for the product 3shan lw khles f nfs lwaat w had tane bytlob
