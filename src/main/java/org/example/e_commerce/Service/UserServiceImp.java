@@ -87,7 +87,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public boolean authenticateUser(String username, String password) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByUsername(username));
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             return passwordEncoder.matches(password, user.getPasswordHash());
@@ -98,7 +98,7 @@ public class UserServiceImp implements UserService {
     @Override
     public Optional<User> getUserByUsername(String username) {
         try {
-            return userRepository.findByUsername(username);
+            return Optional.ofNullable(userRepository.findByUsername(username));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error retrieving user by username: " + e.getMessage(), e);
@@ -108,7 +108,7 @@ public class UserServiceImp implements UserService {
     @Override
     public Optional<User> getUserByEmail(String email) {
         try {
-            return userRepository.findByEmail(email);
+            return Optional.ofNullable(userRepository.findByEmail(email));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error retrieving user by email: " + e.getMessage(), e);

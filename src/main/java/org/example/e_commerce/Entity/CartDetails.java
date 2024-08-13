@@ -1,35 +1,26 @@
 package org.example.e_commerce.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table(name = "cartdetails")
+@Table(name = "cartDetails")
+@Data
 public class CartDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cartdetails_id")
     private Long cartDetailsId;
 
     @OneToOne
-    @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", foreignKey = @ForeignKey(name = "fk_cart_cartDetails"))
+    @JoinColumn(name = "cart_id", unique = true)
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "productid", foreignKey = @ForeignKey(name = "fk_product_cartDetails"))
+    @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    private int quantity;
 
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
-    private Double amount;
+    private double amount;
 }
