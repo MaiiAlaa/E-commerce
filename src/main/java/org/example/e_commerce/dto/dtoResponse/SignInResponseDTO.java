@@ -8,11 +8,12 @@ public class SignInResponseDTO {
     private String email;
     private String username;
     private String token;
+    private String role ;
 
     public SignInResponseDTO() {
     }
 
-    public SignInResponseDTO(String message, int statusCode, String firstName, String lastName, String email, String username, String token) {
+    public SignInResponseDTO(String message, int statusCode, String firstName, String lastName, String email, String username, String token , String role) {
         this.message = message;
         this.statusCode = statusCode;
         this.firstName = firstName;
@@ -20,6 +21,7 @@ public class SignInResponseDTO {
         this.email = email;
         this.username = username;
         this.token = token;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -29,6 +31,14 @@ public class SignInResponseDTO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public int getStatusCode() {

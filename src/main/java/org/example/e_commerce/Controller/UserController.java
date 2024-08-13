@@ -86,6 +86,7 @@ public class UserController {
                 userDetails.put("lastName", user.getLastName());
                 userDetails.put("email", user.getEmail());
                 userDetails.put("username", user.getUsername());
+                userDetails.put("role", user.getRole());
                 userDetails.put("token", token);
 
                 responseBody.put("status", status);
