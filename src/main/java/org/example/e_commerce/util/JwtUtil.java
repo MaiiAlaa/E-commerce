@@ -3,22 +3,26 @@ package org.example.e_commerce.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import java.util.Date;
 import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "your_secret_key";
-    private static final int TOKEN_VALIDITY = 1000 * 60 * 60 * 2; // 10 hours
+    @Value("${JWT_SECRET_KEY}")
+    private String secretKey;
+
+    private static final int TOKEN_VALIDITY = 1000 * 60 * 60 * 2; // 2 hours
 
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
     }
 
@@ -41,7 +45,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {
