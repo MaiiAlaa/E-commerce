@@ -1,6 +1,6 @@
 package org.example.e_commerce.Service;
 
-import org.example.e_commerce.Entity.User; // Ensure this is your custom User entity
+import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +19,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Ensure the findByUsername method returns an Optional<User>
         User userEntity = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
