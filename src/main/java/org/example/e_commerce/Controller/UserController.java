@@ -12,10 +12,13 @@ import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -25,30 +28,42 @@ public class UserController {
     @Autowired
     private UserServiceImp userServiceImp;
 
+
     @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignUpResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO) {
-        try {
-            User user = new User();
-            user.setFirstName(signUpRequestDTO.getFirstname());
-            user.setLastName(signUpRequestDTO.getLastname());
-            user.setUsername(signUpRequestDTO.getUsername());
-            user.setEmail(signUpRequestDTO.getEmail());
-            user.setPasswordHash(signUpRequestDTO.getPassword()); // Password is hashed in the service
-            User savedUser = userServiceImp.saveUser(user);
+    public ResponseEntity<Map<String, String>> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
+        Map<String, String> response = new HashMap<>();
 
-            SignUpResponseDTO response = new SignUpResponseDTO();
-            response.setUserId(savedUser.getUserid());
-            response.setMessage("User registered successfully");
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            SignUpResponseDTO response = new SignUpResponseDTO();
-            response.setMessage("Internal server error");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        // Check if there are validation errors
+        if (bindingResult.hasErrors()) {
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                response.put("message", error.getDefaultMessage());  // Ensure the message key is used
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+
+        // Check if the user already exists
+        if (userServiceImp.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
+            response.put("message", "Username already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } else if (userServiceImp.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
+            response.put("message", "Email already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+
+        // Convert DTO to Entity
+        User user = new User();
+        user.setFirstName(signUpRequestDTO.getFirstname());
+        user.setLastName(signUpRequestDTO.getLastname());
+        user.setUsername(signUpRequestDTO.getUsername());
+        user.setEmail(signUpRequestDTO.getEmail());
+        user.setPasswordHash(signUpRequestDTO.getPassword());
+        userServiceImp.saveUser(user);
+        response.put("message", "User registered successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/signin")

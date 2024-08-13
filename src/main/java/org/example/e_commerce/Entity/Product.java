@@ -1,5 +1,6 @@
 package org.example.e_commerce.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long productid;
@@ -34,11 +36,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    // Establishing the many-to-one relationship with Category
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoryid", nullable = false)
+    @JoinColumn(name = "categoryid", nullable = false)  // Use 'categoryid' as per your table schema
+    @JsonBackReference  // Prevents recursion by not serializing this side
     private Category category;
 
-    public void setProductid(long productid) {
-    }
 }

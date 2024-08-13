@@ -24,8 +24,8 @@ public class SignUpRequestDTO {
     @NotNull(message = "Email is mandatory")
     @NotBlank(message = "Email is mandatory")
     @Pattern(
-            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,6}$",
-            message = "message: Email should be valid"
+            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+            message = "Email should be valid"
     )
     private String email;
 
