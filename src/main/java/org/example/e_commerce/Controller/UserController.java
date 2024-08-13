@@ -2,12 +2,9 @@ package org.example.e_commerce.Controller;
 
 import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.User;
-import org.example.e_commerce.Service.UserService;
 import org.example.e_commerce.Service.UserServiceImp;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
-import org.example.e_commerce.dto.dtoResponse.SignInResponseDTO;
-import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController

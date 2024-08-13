@@ -109,6 +109,7 @@
 			<scope>provided</scope>
 		</dependency>
 
+
 		<!-- JAXB API for XML binding -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
