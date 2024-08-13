@@ -25,95 +25,54 @@ public class UserServiceImp implements UserService {
     @Override
     public User saveUser(User user) {
         try {
-            // Hash password before saving
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            System.err.println("Data integrity violation: " + e.getMessage());
             throw new RuntimeException("Error saving user due to data integrity issues.", e);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error saving user: " + e.getMessage(), e);
         }
     }
 
     @Override
     public Optional<User> getUserById(long userid) {
-        try {
-            return userRepository.findById(userid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error retrieving user by ID: " + e.getMessage(), e);
-        }
+        return userRepository.findById(userid);
     }
 
     @Override
     public List<User> getAllUsers() {
-        try {
-            return userRepository.findAll();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error retrieving all users: " + e.getMessage(), e);
-        }
+        return userRepository.findAll();
     }
 
     @Override
     public User updateUser(long userid, User user) {
-        try {
-            if (userRepository.existsById(userid)) {
-                user.setUserid(userid);
-                // Optionally hash the password if it's updated
-                if (user.getPasswordHash() != null) {
-                    user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
-                }
-                return userRepository.save(user);
+        if (userRepository.existsById(userid)) {
+            user.setUserid(userid);
+            if (user.getPasswordHash() != null) {
+                user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             }
+            return userRepository.save(user);
+        } else {
             throw new RuntimeException("User not found with ID: " + userid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error updating user: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void deleteUser(long userid) {
-        try {
-            userRepository.deleteById(userid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error deleting user: " + e.getMessage(), e);
-        }
+        userRepository.deleteById(userid);
     }
 
     @Override
     public boolean authenticateUser(String username, String password) {
-        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByUsername(username));
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            return passwordEncoder.matches(password, user.getPasswordHash());
-        }
-        return false;
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        return optionalUser.map(user -> passwordEncoder.matches(password, user.getPasswordHash())).orElse(false);
     }
 
     @Override
     public Optional<User> getUserByUsername(String username) {
-        try {
-            return Optional.ofNullable(userRepository.findByUsername(username));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error retrieving user by username: " + e.getMessage(), e);
-        }
+        return userRepository.findByUsername(username);
     }
 
     @Override
     public Optional<User> getUserByEmail(String email) {
-        try {
-            return Optional.ofNullable(userRepository.findByEmail(email));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error retrieving user by email: " + e.getMessage(), e);
-        }
-
+        return userRepository.findByEmail(email);
     }
 }
-
