@@ -1,44 +1,48 @@
 package org.example.e_commerce.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Data
 @Entity
-@Table(name = "products")
+@Table(name = "product")  // Table name lazm y match the SQL table name
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productid;
+    @Column(name = "product_id")  // Column name lazm y match the SQL column name
+    private Long productId;
 
-    @NotBlank(message = "Product name is mandatory")
-    @Column(name = "name")
-    private String name;
+    @Column(name = "product_name", nullable = false, length = 255)
+    private String productName;
 
-    @NotNull(message = "Price is mandatory")
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
+
     @Column(name = "price")
     private Double price;
 
-    @NotNull(message = "Stock is mandatory")
-    @Column(name = "stock")
-    private Integer stock;
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoryid", nullable = false)  // Use 'categoryid' as per your table schema
-    @JsonBackReference  // Prevents recursion by not serializing this side
-    private Category category;
+    @Column(name = "warranty_period")
+    private Integer warrantyPeriod;
 
+    @Column(name = "manufacturer", length = 255)
+    private String manufacturer;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    private Category category;
 }

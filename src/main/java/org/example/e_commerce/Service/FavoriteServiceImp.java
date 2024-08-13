@@ -49,7 +49,7 @@ public class FavoriteServiceImp implements FavoriteService {
         return new FavoriteRequestDTO(
                 favorite.getFavoriteId(),
                 favorite.getUser().getUserid(),
-                favorite.getProduct() != null ? favorite.getProduct().getProductid() : null,
+                favorite.getProduct() != null ? favorite.getProduct().getProductId() : null,
                 favorite.getCategory() != null ? favorite.getCategory().getCategoryid() : null,
                 favorite.getCreatedAt()
         );

@@ -1,22 +1,21 @@
 package org.example.e_commerce.dto.dtoRequest;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.example.e_commerce.Entity.Product;
 
-@Getter
-@Setter
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
 public class ProductRequestDTO {
-    @NotBlank(message = "Product name is mandatory")
-    private String name;
-
-    @NotNull(message = "Price is mandatory")
+    // vilidation hena mydakhlsh haga b null
+    List<Product> productList = new ArrayList<>();
+    private Long productID;
+    private String productName;
+    private Long categoryID; // Reference to Category table
     private Double price;
-
-    @NotNull(message = "Category ID is mandatory")
-    private Long categoryid;
-
-    private Integer stock;
+    private Integer stockQuantity;
     private String description;
+    private Integer warrantyPeriod;
+    private String manufacturer;
 }
