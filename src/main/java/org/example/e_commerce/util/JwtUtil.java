@@ -12,7 +12,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${JWT_SECRET_KEY}")
+    @Value("${JWT_SECRET_KEY:ekhales}")
     private String secretKey;
 
     private static final int TOKEN_VALIDITY = 1000 * 60 * 60 * 2; // 2 hours
