@@ -1,6 +1,7 @@
 package org.example.e_commerce.config;
 
 import org.example.e_commerce.filters.JwtRequestFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,38 +19,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtRequestFilter jwtRequestFilter;
-    private final UserDetailsService userDetailsService;
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
 
-    public SecurityConfig(JwtRequestFilter jwtRequestFilter, UserDetailsService userDetailsService) {
-        this.jwtRequestFilter = jwtRequestFilter;
-        this.userDetailsService = userDetailsService;
-    }
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authz -> authz
-                        .anyRequest().permitAll() // Permit all requests without authentication
+        http.csrf(csrf -> csrf.disable()) // Disable CSRF protection
+                .authorizeHttpRequests(authorizeRequests ->
+                        authorizeRequests
+                                .requestMatchers("/api/auth/signin", "/api/auth/signup").permitAll()
+                                .anyRequest().authenticated() // Any other request must be authenticated
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Use stateless session policy
+                .sessionManagement(sessionManagement ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
-        // Add JWT filter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
