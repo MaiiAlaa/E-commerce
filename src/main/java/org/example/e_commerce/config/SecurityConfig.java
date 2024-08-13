@@ -31,7 +31,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .anyRequest().permitAll() // Permit all requests without authentication
+                        // Allow unauthenticated access to UserController APIs
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Require authentication for all other requests
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Use stateless session policy
