@@ -2,6 +2,7 @@ package org.example.e_commerce.Controller;
 
 import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.User;
+import org.example.e_commerce.Service.UserService;
 import org.example.e_commerce.Service.UserServiceImp;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
@@ -14,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,65 +67,53 @@ public class UserController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<SignInResponseDTO> signIn(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
-        try {
-            boolean isAuthenticated = userServiceImp.authenticateUser(signInRequestDTO.getUsername(), signInRequestDTO.getPassword());
-            SignInResponseDTO response = new SignInResponseDTO();
-            if (isAuthenticated) {
-                // Generate token
-                String token = jwtUtil.generateToken(signInRequestDTO.getUsername());
+    public ResponseEntity<Map<String, Object>> SignIn(@RequestBody SignInRequestDTO signInRequestDTO) {
+        boolean isAuthenticated = userServiceImp.authenticateUser(signInRequestDTO.getUsername(), signInRequestDTO.getPassword());
 
-                // Log the token (optional, for debugging)
-                System.out.println("Generated Token: " + token);
+        if (isAuthenticated) {
+            Optional<User> userOpt = userServiceImp.getUserByUsername(signInRequestDTO.getUsername());
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                String token = jwtUtil.generateToken(user.getUsername());
 
-                // Set the response data
-                response.setMessage("User authenticated successfully");
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setToken(token);
+                Map<String, Object> responseBody = new HashMap<>();
+                Map<String, Object> status = new HashMap<>();
+                status.put("description", "Login Succeeded");
+                status.put("statusCode", HttpStatus.OK.value());
 
-                return new ResponseEntity<>(response, HttpStatus.OK);
+                Map<String, Object> userDetails = new HashMap<>();
+                userDetails.put("firstName", user.getFirstName());
+                userDetails.put("lastName", user.getLastName());
+                userDetails.put("email", user.getEmail());
+                userDetails.put("username", user.getUsername());
+                userDetails.put("token", token);
+
+                responseBody.put("status", status);
+                responseBody.put("userDetails", userDetails);
+
+                return ResponseEntity.ok(responseBody);
             } else {
-                response.setMessage("Invalid username or password");
-                response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+                Map<String, Object> responseBody = new HashMap<>();
+                Map<String, Object> status = new HashMap<>();
+                status.put("description", "User not found");
+                status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+
+                responseBody.put("status", status);
+
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            SignInResponseDTO response = new SignInResponseDTO();
-            response.setMessage("Internal server error");
-            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+            Map<String, Object> responseBody = new HashMap<>();
+            Map<String, Object> status = new HashMap<>();
+            status.put("description", "Login Failed");
+            status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+
+            responseBody.put("status", status);
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
         }
     }
 
-//    @PostMapping("/signin")
-//    public ResponseEntity<SignInResponseDTO> signIn(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
-//        try {
-//            boolean isAuthenticated = userServiceImp.authenticateUser(signInRequestDTO.getUsername(), signInRequestDTO.getPassword());
-//            SignInResponseDTO response = new SignInResponseDTO();
-//            if (isAuthenticated) {
-//                // Generate token
-//                String token = jwtUtil.generateToken(signInRequestDTO.getUsername());
-//
-//                // Log the token (optional, for debugging)
-//                System.out.println("Generated Token: " + token);
-//
-//                // Set the token in the response
-//                response.setMessage("User authenticated successfully");
-//                response.setToken(token);
-//
-//                return new ResponseEntity<>(response, HttpStatus.OK);
-//            } else {
-//                response.setMessage("Invalid username or password");
-//                return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            SignInResponseDTO response = new SignInResponseDTO();
-//            response.setMessage("Internal server error");
-//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 
 
 
