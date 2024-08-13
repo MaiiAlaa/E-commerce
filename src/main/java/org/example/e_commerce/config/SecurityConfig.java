@@ -30,7 +30,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // Disable CSRF protection
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/auth/users/signin", "/api/auth/users/signup").permitAll()
+                                .requestMatchers("/api/auth/signin", "/api/auth/signup").permitAll()
                                 .anyRequest().authenticated() // Any other request must be authenticated
                 )
                 .sessionManagement(sessionManagement ->
