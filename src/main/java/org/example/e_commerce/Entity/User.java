@@ -35,5 +35,17 @@ public class User {
     @NotBlank(message = "Password hash is mandatory")
     @Column(name = "passwordhash")
     private String passwordHash;
+
+    @NotBlank(message = "Role is mandatory")
+    @Column(name = "role")
+    private String role;
+
+    public @NotBlank(message = "Role is mandatory") String getRole() {
+        return role;
+    }
+
+    public void setRole(@NotBlank(message = "Role is mandatory") String role) {
+        this.role = role;
+    }
 }
 

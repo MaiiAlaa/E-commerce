@@ -13,5 +13,9 @@ public class SignUpResponseDTO {
     private Long statusCode;
 
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
 
 }
