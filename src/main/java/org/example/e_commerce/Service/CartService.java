@@ -19,53 +19,71 @@ public class CartService {
 
     @Autowired
     ProductRepository productRepo;
+
     @Autowired
     private ModelMapper modelMapper;
+
     @Autowired
     CartRepo cartRepo;
+
     @Autowired
     CartDetailsRepo cartDetailsRepo;
+
     @Autowired
     TransactionRepo transactionRepo;
+
     @Autowired
     UserRepository userrepo;
+
     @Autowired
     JwtUtil jwtUtil;
+
     SignUpResponseDTO responseDTO = new SignUpResponseDTO();
+
     @Transactional
-    public SignUpResponseDTO AddToCart(String Token , PurchaseRequestDTO.ProductRequestDTO productRequestDTO)
-    {
+    public SignUpResponseDTO AddToCart(String Token, PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
         String username = jwtUtil.extractUsername(Token);
-        User user = new User();
-        Long userId =userrepo.getUserIdByUsername(username);
+        Optional<Long> userIdOptional = userrepo.getUserIdByUsername(username);
+
+        if (!userIdOptional.isPresent()) {
+            responseDTO.setMessage("User not found with username: " + username);
+            responseDTO.setStatusCode(-1L);
+            return responseDTO;
+        }
+
+        Long userId = userIdOptional.get();
         Cart cart = cartRepo.findByUserid(userId).orElse(null);
-        if (cart == null)
-        {
+
+        if (cart == null) {
             cart = new Cart();
             cart.setUserid(userId);
             cartRepo.save(cart);
             responseDTO.setMessage("CART CREATED");
-            responseDTO.setStatusCode(0l);
+            responseDTO.setStatusCode(0L);
             return responseDTO;
         }
+
         Product product = productRepo.findById(productRequestDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         if (product.getStockQuantity() < productRequestDTO.getQuantity()) {
             responseDTO.setMessage("Insufficient stock for product");
-            responseDTO.setStatusCode(-1l);
+            responseDTO.setStatusCode(-1L);
             return responseDTO;
         }
+
         CartDetails cartDetails = new CartDetails();
         cartDetails.setCart(cart);
         cartDetails.setProduct(product);
         cartDetails.setQuantity(productRequestDTO.getQuantity());
-        cartDetails.setAmount(product.getPrice()*productRequestDTO.getQuantity());
+        cartDetails.setAmount(product.getPrice() * productRequestDTO.getQuantity());
         cartDetailsRepo.save(cartDetails);
+
         responseDTO.setMessage("Products Added To Cart");
-        responseDTO.setStatusCode(0l);
+        responseDTO.setStatusCode(0L);
         return responseDTO;
     }
+
     @Transactional
     public SignUpResponseDTO purchase(PurchaseRequestDTO request) {
         try {
@@ -80,13 +98,13 @@ public class CartService {
                 }
                 Product product = optionalProduct.get();
 
-
                 if (product.getStockQuantity() < productRequest.getQuantity()) {
                     return new SignUpResponseDTO("Insufficient stock for product: " + productRequest.getProductId(), (long) HttpStatus.BAD_REQUEST.value());
-                    //double check for the product 3shan lw khles f nfs lwaat w had tane bytlob
                 }
+
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
+
                 CartDetails cartDetails = new CartDetails();
                 cartDetails.setCart(cart);
                 cartDetails.setProduct(product);
@@ -97,6 +115,7 @@ public class CartService {
                 product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
                 productRepo.save(product);
             }
+
             String invoiceNumber = "INV-" + System.currentTimeMillis();
             LocalDateTime date = LocalDateTime.now();
 
@@ -108,6 +127,7 @@ public class CartService {
             transaction.setQuantity(request.getProducts().stream().mapToInt(PurchaseRequestDTO.ProductRequestDTO::getQuantity).sum());
             transaction.setAmount(totalAmount);
             transactionRepo.save(transaction);
+
             return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, (long) HttpStatus.OK.value());
         } catch (RuntimeException e) {
             return new SignUpResponseDTO("Error: " + e.getMessage(), (long) HttpStatus.INTERNAL_SERVER_ERROR.value());
