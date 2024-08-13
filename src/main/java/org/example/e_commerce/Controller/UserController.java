@@ -56,8 +56,8 @@ public class UserController {
 
         // Convert DTO to Entity
         User user = new User();
-        user.setFirstName(signUpRequestDTO.getFirstname());
-        user.setLastName(signUpRequestDTO.getLastname());
+        user.setFirstname(signUpRequestDTO.getFirstname());
+        user.setLastname(signUpRequestDTO.getLastname());
         user.setUsername(signUpRequestDTO.getUsername());
         user.setEmail(signUpRequestDTO.getEmail());
         user.setPasswordHash(signUpRequestDTO.getPassword());
@@ -82,8 +82,8 @@ public class UserController {
                 status.put("statusCode", HttpStatus.OK.value());
 
                 Map<String, Object> userDetails = new HashMap<>();
-                userDetails.put("firstName", user.getFirstName());
-                userDetails.put("lastName", user.getLastName());
+                userDetails.put("firstName", user.getFirstname());
+                userDetails.put("lastName", user.getLastname());
                 userDetails.put("email", user.getEmail());
                 userDetails.put("username", user.getUsername());
                 userDetails.put("role", user.getRole());

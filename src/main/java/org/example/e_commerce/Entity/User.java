@@ -21,11 +21,11 @@ public class User {
 
     @NotBlank(message = "First name is mandatory")
     @Column(name = "firstname")
-    private String firstName;
+    private String firstname;
 
     @NotBlank(message = "Last name is mandatory")
     @Column(name = "lastname")
-    private String lastName;
+    private String lastname;
 
     @NotBlank(message = "Username is mandatory")
     @Column(name = "username", unique = true)
