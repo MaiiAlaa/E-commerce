@@ -1,5 +1,4 @@
 package org.example.e_commerce.filters;
-
 import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +22,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
+
+        // Bypass JWT validation for sign-in and sign-up endpoints
+        String requestURI = request.getRequestURI();
+        if (requestURI.equals("/api/auth/signin") || requestURI.equals("/api/auth/signup")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String username = null;
         String jwt = null;
