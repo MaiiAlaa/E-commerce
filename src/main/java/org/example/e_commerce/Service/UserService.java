@@ -14,7 +14,5 @@ public interface UserService {
     Optional<User> getUserByUsername(String username);
     Optional<User> getUserByEmail(String email);
     boolean authenticateUser(String username, String password);
-    Optional<User> getUserByUsername(String username);
-
 }
 
