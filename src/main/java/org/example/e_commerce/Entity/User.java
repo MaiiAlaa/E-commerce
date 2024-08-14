@@ -44,7 +44,4 @@ public class User {
         return role;
     }
 
-    public void setRole(@NotBlank(message = "Role is mandatory") String role) {
-        this.role = role;
-    }
 }
