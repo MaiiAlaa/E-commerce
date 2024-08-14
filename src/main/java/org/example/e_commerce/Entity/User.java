@@ -37,7 +37,14 @@ public class User {
     private String passwordHash;
 
     @NotBlank(message = "Role is mandatory")
-    @Column(name = "role")
-    private String role;
+    @Column(name = "role", nullable = false)
+    private String role = "user"; // Default role value
+
+    @PrePersist
+    protected void onCreate() {
+        if (role == null || role.isBlank()) {
+            role = "user";
+        }
+    }
 
 }
