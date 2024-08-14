@@ -40,8 +40,4 @@ public class User {
     @Column(name = "role")
     private String role;
 
-    public @NotBlank(message = "Role is mandatory") String getRole() {
-        return role;
-    }
-
 }
