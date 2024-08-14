@@ -37,7 +37,7 @@ public class User {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", columnDefinition = "user_role")
+    @Column(name = "role")
     private UserRole role = UserRole.USER;  // Default role value
 
     public enum UserRole {
