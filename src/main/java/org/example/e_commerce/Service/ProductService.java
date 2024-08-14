@@ -3,7 +3,9 @@ package org.example.e_commerce.Service;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
 import org.example.e_commerce.Entity.Product;
+import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.ProductRepository;
+import org.example.e_commerce.Repository.CategoryRepository;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,14 @@ public class ProductService {
     private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     @Autowired
     private ModelMapper modelMapper;
+
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public Product convertToEntity(ProductRequestDTO productDTO) {
@@ -29,53 +34,55 @@ public class ProductService {
     }
 
     public SignUpResponseDTO addProduct(ProductRequestDTO productDTO) {
-        if(productDTO.getProductName() == null || productDTO.getPrice()==null||productDTO.getDescription()==null||productDTO.getCategoryID() == null||productDTO.getWarrantyPeriod() == null||productDTO.getManufacturer()==null){
+        if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
+                productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
+                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null) {
             responseDTO.setMessage("Fill the data ");
-            responseDTO.setStatusCode(-1l);
+            responseDTO.setStatusCode(-1L);
             return responseDTO;
         }
-        Product productExist = productRepository.findByProductName(productDTO.getProductName()); // check lw name da mawgoud wla la
-        if (productExist != null) {
-            responseDTO.setMessage("Product Alreday Exist Update if you want");
-            responseDTO.setStatusCode(-2l);
-            return responseDTO;
 
+        Product productExist = productRepository.findByProductName(productDTO.getProductName());
+        if (productExist != null) {
+            responseDTO.setMessage("Product Already Exists. Update if you want");
+            responseDTO.setStatusCode(-2L);
+            return responseDTO;
         }
+
+        Category category = categoryRepository.findById(productDTO.getCategoryID())
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + productDTO.getCategoryID()));
 
         Product productNew = convertToEntity(productDTO);
+        productNew.setCategory(category);
         productRepository.save(productNew);
         responseDTO.setMessage("Added Successfully");
-        responseDTO.setStatusCode(0l);
+        responseDTO.setStatusCode(0L);
         return responseDTO;
     }
 
     public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO) {
-        Product productExist = productRepository.findByProductName(productDTO.getProductName()); // 3mlt select lel prouduct by name
+        Product productExist = productRepository.findByProductName(productDTO.getProductName());
         if (productExist != null) {
-//            Long productId = productExist.getProductId();
-//            int oldQuantity = productExist.getStockQuantity();
-//            productExist = convertToEntity(productDTO);
-//            productExist.setProductId(productId);
-//            int newQuantity = productDTO.getStockQuantity() + oldQuantity;
-//            productDTO.setStockQuantity(newQuantity);
-//            double newPrice = productDTO.getPrice();
-//            productExist.setPrice(newPrice);
-//            productExist.setStockQuantity(newQuantity);
-            productExist.setProductName(productDTO.getProductName());
-            productExist.setCategoryId(productDTO.getCategoryID());
+            Category category = categoryRepository.findById(productDTO.getCategoryID())
+                    .orElseThrow(() -> new RuntimeException("Category not found with id: " + productDTO.getCategoryID()));
+
+            productExist.setCategory(category);
             productExist.setPrice(productDTO.getPrice());
             productExist.setDescription(productDTO.getDescription());
             productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
             productExist.setManufacturer(productDTO.getManufacturer());
-            int newQuantity = productDTO.getStockQuantity() + productExist.getStockQuantity();
-            productExist.setStockQuantity(newQuantity);
+
+            // Update stock quantity
+            productExist.setStockQuantity(productDTO.getStockQuantity());
+
             productRepository.save(productExist);
-            responseDTO.setMessage("product updated");
-            responseDTO.setStatusCode(0l);
+            responseDTO.setMessage("Product updated");
+            responseDTO.setStatusCode(0L);
             return responseDTO;
         }
-        responseDTO.setMessage("Product didn't Exist Please Add Product ");
-        responseDTO.setStatusCode(-4l);
+
+        responseDTO.setMessage("Product didn't Exist. Please Add Product");
+        responseDTO.setStatusCode(-4L);
         return responseDTO;
     }
 
@@ -93,7 +100,6 @@ public class ProductService {
                     product.getCategory().getName()
             );
         } else {
-            // Handle the case where the product is not found, e.g., throw an exception
             throw new RuntimeException("Product not found with id: " + id);
         }
     }
@@ -101,6 +107,4 @@ public class ProductService {
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
     }
-
-
 }
