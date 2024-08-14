@@ -7,29 +7,36 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    @Value("${JWT_SECRET_KEY:ekhales}")
-    private String secretKey;
-
-    private static final int TOKEN_VALIDITY = 1000 * 60 * 60 * 2; // 2 hours
+    @Value("${jwt.secret.key}")
+    private String secretKey; // Replace with your actual secret key
 
     public String generateToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setSubject(username)
+                .setClaims(claims)
+                .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
-                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
     public Boolean validateToken(String token, String username) {
-        final String tokenUsername = extractUsername(token);
-        return (username.equals(tokenUsername) && !isTokenExpired(token));
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
+
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -45,7 +52,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {
