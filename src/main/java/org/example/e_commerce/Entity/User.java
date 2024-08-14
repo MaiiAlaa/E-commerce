@@ -36,14 +36,19 @@ public class User {
     @Column(name = "passwordhash")
     private String passwordHash;
 
-    @NotBlank(message = "Role is mandatory")
-    @Column(name = "role", nullable = false)
-    private String role = "user"; // Default role value
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", columnDefinition = "user_role")
+    private UserRole role = UserRole.USER;  // Default role value
+
+    public enum UserRole {
+        USER,
+        ADMIN
+    }
 
     @PrePersist
     protected void onCreate() {
-        if (role == null || role.isBlank()) {
-            role = "user";
+        if (role == null ) {
+            role = UserRole.USER;
         }
     }
 

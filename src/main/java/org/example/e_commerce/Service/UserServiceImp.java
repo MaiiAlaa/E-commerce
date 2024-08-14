@@ -25,10 +25,6 @@ public class UserServiceImp implements UserService {
     @Override
     public User saveUser(User user) {
         try {
-            // Set the default role if it's not provided
-            if (user.getRole() == null || user.getRole().isBlank()) {
-                user.setRole("user");
-            }
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
