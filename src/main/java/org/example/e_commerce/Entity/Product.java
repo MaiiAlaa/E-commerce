@@ -36,13 +36,18 @@ public class Product {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "warranty_period")
-    private Integer warrantyPeriod;
 
-    @Column(name = "manufacturer", length = 255)
+    @Column(name = "manufacturer")
     private String manufacturer;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    @Column(name = "warranty_period")
+    private String warranty;
+
+    @Column(name = "imageurl")
+    private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoryid", nullable = false)  // Use 'categoryid' as per your table schema
+    @JsonBackReference  // Prevents recursion by not serializing this side
     private Category category;
 }
