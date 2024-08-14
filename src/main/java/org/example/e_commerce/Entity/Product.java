@@ -36,6 +36,15 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "manufacturer")
+    private String manufacturer;
+
+    @Column(name = "warranty_period")
+    private String warranty;
+
+    @Column(name = "imageurl")
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryid", nullable = false)  // Use 'categoryid' as per your table schema
     @JsonBackReference  // Prevents recursion by not serializing this side
