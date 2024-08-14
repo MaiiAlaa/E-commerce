@@ -11,8 +11,7 @@ public interface UserService {
     List<User> getAllUsers();
     User updateUser(long userid, User user);
     void deleteUser(long userid);
+    boolean authenticateUser(String username, String password);
     Optional<User> getUserByUsername(String username);
     Optional<User> getUserByEmail(String email);
-    boolean authenticateUser(String username, String password);
 }
-
