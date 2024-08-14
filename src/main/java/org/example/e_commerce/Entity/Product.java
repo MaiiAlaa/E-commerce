@@ -1,14 +1,8 @@
 package org.example.e_commerce.Entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Column;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
@@ -41,7 +35,8 @@ public class Product {
     private String manufacturer;
 
     @Column(name = "warranty_period")
-    private String warranty;
+    private Integer warrantyPeriod;
+
 
     @Column(name = "imageurl")
     private String imageUrl;
