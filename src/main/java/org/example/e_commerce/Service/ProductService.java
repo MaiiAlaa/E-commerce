@@ -67,6 +67,14 @@ public class ProductService {
         Product productNew = convertToEntity(productDTO);
         productNew.setCategory(category);
         productRepository.save(productNew);
+        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
+            for (String imageUrl : productDTO.getImageUrls()) {
+                ProductImages productImage = new ProductImages();
+                productImage.setProduct(productNew);
+                productImage.setImageUrl(imageUrl);
+                productImagesRepository.save(productImage);
+            }
+        }
         responseDTO.setMessage("Added Successfully");
         responseDTO.setStatusCode(0L);
         return responseDTO;
@@ -87,11 +95,17 @@ public class ProductService {
             productExist.setDescription(productDTO.getDescription());
             productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
             productExist.setManufacturer(productDTO.getManufacturer());
-
-            // Update stock quantity
             productExist.setStockQuantity(productDTO.getStockQuantity());
 
             productRepository.save(productExist);
+            if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
+                for (String imageUrl : productDTO.getImageUrls()) {
+                    ProductImages productImage = new ProductImages();
+                    productImage.setProduct(productExist);
+                    productImage.setImageUrl(imageUrl);
+                    productImagesRepository.save(productImage);
+                }
+            }
             responseDTO.setMessage("Product updated");
             responseDTO.setStatusCode(0L);
             return responseDTO;
