@@ -107,4 +107,12 @@ public class ProductService {
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
     }
+    public List<Product>findProductCategoryId(Long categoryId){
+        return productRepository.findProductCategoryId(categoryId);
+    }
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+
 }
