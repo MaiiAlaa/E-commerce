@@ -1,12 +1,11 @@
 package org.example.e_commerce.Entity;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Setter;
+
+import java.util.List;
 
 @Data
-@Setter
 @Entity
 @Table(name = "products")
 public class Product {
@@ -41,4 +40,7 @@ public class Product {
 
     @Column(name = "imageurl")
     private String imageUrl;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductImages> productImages; // All images related to this product
 }
