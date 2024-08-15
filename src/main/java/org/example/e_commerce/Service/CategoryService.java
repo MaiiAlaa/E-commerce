@@ -1,9 +1,8 @@
 package org.example.e_commerce.Service;
 
-
-
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.CategoryRepository;
+import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,23 +19,36 @@ public class CategoryService {
         return categoryRepo.findAll();
     }
 
-    public Category getCategoryById(Long id) {
-        return categoryRepo.findById(id).orElse(null);
+    public CategoryResponseDTO getCategoryById(Long id) {
+        Optional<Category> category = categoryRepo.findById(id);
+        if (category.isPresent()) {
+            return new CategoryResponseDTO("Category found", 200L, category.get());
+        } else {
+            return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
+        }
     }
 
-    public Category createCategory(Category category) {
-        return categoryRepo.save(category);
+    public CategoryResponseDTO createCategory(Category category) {
+        Category savedCategory = categoryRepo.save(category);
+        return new CategoryResponseDTO("Category created successfully", 201L, savedCategory);
     }
 
-    public Category updateCategory(Long id, Category category) {
+    public CategoryResponseDTO updateCategory(Long id, Category category) {
         if (categoryRepo.existsById(id)) {
             category.setCategoryid(id);
-            return categoryRepo.save(category);
+            Category updatedCategory = categoryRepo.save(category);
+            return new CategoryResponseDTO("Category updated successfully", 200L, updatedCategory);
+        } else {
+            return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
         }
-        return null;
     }
 
-    public void deleteCategory(Long id) {
-        categoryRepo.deleteById(id);
+    public CategoryResponseDTO deleteCategory(Long id) {
+        if (categoryRepo.existsById(id)) {
+            categoryRepo.deleteById(id);
+            return new CategoryResponseDTO("Category deleted successfully", 200L, null);
+        } else {
+            return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
+        }
     }
 }

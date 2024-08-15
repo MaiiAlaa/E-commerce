@@ -1,9 +1,8 @@
 package org.example.e_commerce.Controller;
 
-
-
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Service.CategoryService;
+import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,25 +24,25 @@ public class CategoryController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Long id) {
+    public CategoryResponseDTO getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public Category createCategory(@RequestBody Category category) {
+    public CategoryResponseDTO createCategory(@RequestBody Category category) {
         return categoryService.createCategory(category);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category category) {
+    public CategoryResponseDTO updateCategory(@PathVariable Long id, @RequestBody Category category) {
         return categoryService.updateCategory(id, category);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
+    public CategoryResponseDTO deleteCategory(@PathVariable Long id) {
+        return categoryService.deleteCategory(id);
     }
 }
