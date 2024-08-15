@@ -10,14 +10,12 @@ import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.example.e_commerce.Entity.ProductImage;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 @Service
 public class ProductService {
-    private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
-
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     @Autowired
@@ -33,20 +31,16 @@ public class ProductService {
         return modelMapper.map(productDTO, Product.class);
     }
 
-    public SignUpResponseDTO addProduct(ProductRequestDTO productDTO) {
+    public ProductResponseDTO addProduct(ProductRequestDTO productDTO) {
         if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
                 productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
                 productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null) {
-            responseDTO.setMessage("Fill the data ");
-            responseDTO.setStatusCode(-1L);
-            return responseDTO;
+            throw new RuntimeException("All fields must be filled.");
         }
 
         Product productExist = productRepository.findByProductName(productDTO.getProductName());
         if (productExist != null) {
-            responseDTO.setMessage("Product Already Exists. Update if you want");
-            responseDTO.setStatusCode(-2L);
-            return responseDTO;
+            throw new RuntimeException("Product already exists. Please update if you want.");
         }
 
         Category category = categoryRepository.findById(productDTO.getCategoryID())
@@ -54,65 +48,59 @@ public class ProductService {
 
         Product productNew = convertToEntity(productDTO);
         productNew.setCategory(category);
-        productRepository.save(productNew);
-        responseDTO.setMessage("Added Successfully");
-        responseDTO.setStatusCode(0L);
-        return responseDTO;
+        Product savedProduct = productRepository.save(productNew);
+
+        return convertToDto(savedProduct);
     }
 
-    public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO) {
+    public ProductResponseDTO updateProduct(ProductRequestDTO productDTO) {
         Product productExist = productRepository.findByProductName(productDTO.getProductName());
-        if (productExist != null) {
-            Category category = categoryRepository.findById(productDTO.getCategoryID())
-                    .orElseThrow(() -> new RuntimeException("Category not found with id: " + productDTO.getCategoryID()));
-
-            productExist.setCategory(category);
-            productExist.setPrice(productDTO.getPrice());
-            productExist.setDescription(productDTO.getDescription());
-            productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
-            productExist.setManufacturer(productDTO.getManufacturer());
-
-            // Update stock quantity
-            productExist.setStockQuantity(productDTO.getStockQuantity());
-
-            productRepository.save(productExist);
-            responseDTO.setMessage("Product updated");
-            responseDTO.setStatusCode(0L);
-            return responseDTO;
+        if (productExist == null) {
+            throw new RuntimeException("Product doesn't exist. Please add the product.");
         }
 
-        responseDTO.setMessage("Product didn't Exist. Please Add Product");
-        responseDTO.setStatusCode(-4L);
-        return responseDTO;
+        Category category = categoryRepository.findById(productDTO.getCategoryID())
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + productDTO.getCategoryID()));
+
+        productExist.setCategory(category);
+        productExist.setPrice(productDTO.getPrice());
+        productExist.setDescription(productDTO.getDescription());
+        productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
+        productExist.setManufacturer(productDTO.getManufacturer());
+        productExist.setStockQuantity(productDTO.getStockQuantity());
+
+        Product updatedProduct = productRepository.save(productExist);
+
+        return convertToDto(updatedProduct);
+    }
+
+    public List<ProductResponseDTO> searchProducts(String searchTerm) {
+        List<Product> products = productRepository.searchByNameOrManufacturer(searchTerm);
+        return products.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     public ProductResponseDTO getProductById(Long id) {
         Optional<Product> productOptional = productRepository.findById(id);
+
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
-            return new ProductResponseDTO(
-                    product.getProductId(),
-                    product.getProductName(),
-                    product.getPrice(),
-                    product.getStockQuantity(),
-                    product.getDescription(),
-                    product.getCategory().getCategoryid(),
-                    product.getCategory().getName()
-            );
+            return convertToDto(product);  // Ensure convertToDto returns a ProductResponseDTO
         } else {
             throw new RuntimeException("Product not found with id: " + id);
         }
     }
 
-    public List<Product> searchProducts(String searchTerm) {
-        return productRepository.searchByNameOrManufacturer(searchTerm);
+    private ProductResponseDTO convertToDto(Product product) {
+        return new ProductResponseDTO(
+                product.getProductId(),
+                product.getProductName(),
+                product.getPrice(),
+                product.getStockQuantity(),
+                product.getDescription(),
+                product.getCategory().getCategoryid(),
+                product.getCategory().getName()
+        );
     }
-    public List<Product>findProductCategoryId(Long categoryId){
-        return productRepository.findProductCategoryId(categoryId);
-    }
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
-
-
 }
