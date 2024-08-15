@@ -34,11 +34,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
 			<version>3.1.1</version> <!-- Check for the latest version -->
 		</dependency>
+
 		<!-- PostgreSQL Driver -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -54,12 +56,14 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Jakarta Persistence API -->
+		<!-- Javax Servlet API -->
 		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<version>3.0.0</version>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>4.0.1</version>
+			<scope>provided</scope>
 		</dependency>
+
 
 		<!-- Hibernate JPA Implementation -->
 		<dependency>
@@ -113,23 +117,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt</artifactId>
-			<version>0.9.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>0.11.5</version>
-		</dependency>
-
-
 		<!-- JAXB API for XML binding -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
@@ -142,7 +129,6 @@
 			<version>2.3.1</version>
 		</dependency>
 	</dependencies>
-
 
 	<repositories>
 		<repository>
