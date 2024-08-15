@@ -11,9 +11,6 @@ import java.util.List;
 @Data
 public class ProductRequestDTO {
 
-    @NotNull(message = "Product ID is mandatory")
-    private Long productID;
-
     @NotBlank(message = "Product name is mandatory")
     private String productName;
 
