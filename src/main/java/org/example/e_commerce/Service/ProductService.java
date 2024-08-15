@@ -104,11 +104,12 @@ public class ProductService {
 
     public List<ProductResponseDTO> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(this::convertToDto)
+                .map(this::convertToDtoForAllProducts)
                 .collect(Collectors.toList());
     }
 
-    private ProductResponseDTO convertToDto(Product product) {
+    // Method used by getAllProducts to exclude imageUrls
+    private ProductResponseDTO convertToDtoForAllProducts(Product product) {
         return new ProductResponseDTO(
                 product.getProductId(),
                 product.getProductName(),
@@ -117,8 +118,27 @@ public class ProductService {
                 product.getDescription(),
                 product.getCategory().getCategoryid(),
                 product.getCategory().getName(),
-                product.getImageUrl(), // only main image
-                null // no additional images in getAllProducts
+                product.getImageUrl(), // Main image URL
+                null // Exclude additional image URLs
+        );
+    }
+
+    // Original method used by other APIs to include imageUrls
+    private ProductResponseDTO convertToDto(Product product) {
+        List<String> imageUrls = product.getProductImages().stream()
+                .map(ProductImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        return new ProductResponseDTO(
+                product.getProductId(),
+                product.getProductName(),
+                product.getPrice(),
+                product.getStockQuantity(),
+                product.getDescription(),
+                product.getCategory().getCategoryid(),
+                product.getCategory().getName(),
+                product.getImageUrl(), // Main image URL
+                imageUrls // Include additional image URLs
         );
     }
 
