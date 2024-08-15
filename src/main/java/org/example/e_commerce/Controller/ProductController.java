@@ -40,6 +40,17 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/add")
+    public ResponseEntity<SignUpResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO productDTO) {// req body coming from postman
+
+        SignUpResponseDTO response = productService.addProduct(productDTO);
+
+        if (response.getStatusCode() != 0l) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/by_category/{categoryId}")
     public ResponseEntity<List<Product>> findProductCategoryId(@PathVariable Long categoryId) {
         List<Product> products = productService.findProductCategoryId(categoryId);
