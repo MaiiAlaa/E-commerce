@@ -1,13 +1,10 @@
 package org.example.e_commerce.Controller;
 
 import jakarta.validation.Valid;
-import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
-import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +20,13 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}")
     public ProductResponseDTO getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
+    }
+
+    @GetMapping
+    public List<ProductResponseDTO> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @PostMapping("/update")

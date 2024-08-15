@@ -10,10 +10,7 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    public Product findByProductName(String productName);
-
-    List<Product> findByProductId(long id);
-
+    Product findByProductName(String productName);
 
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId")
     List<Product> findProductCategoryId(@Param("categoryId") Long categoryId);
@@ -21,3 +18,4 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE LOWER(p.productName) LIKE LOWER(CONCAT('%', :searchString, '%')) OR LOWER(p.manufacturer) LIKE LOWER(CONCAT('%', :searchString, '%'))")
     List<Product> searchByNameOrManufacturer(@Param("searchString") String searchString);
 }
+
