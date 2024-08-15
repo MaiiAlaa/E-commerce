@@ -23,6 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
+    private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
     @Autowired
     private ModelMapper modelMapper;
@@ -38,11 +39,13 @@ public class ProductService {
         return modelMapper.map(productDTO, Product.class);
     }
 
-    public ProductResponseDTO addProduct(ProductRequestDTO productDTO) {
+    public SignUpResponseDTO addProduct(ProductRequestDTO productDTO) {
         if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
                 productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
                 productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null) {
-            throw new RuntimeException("All fields are required.");
+            responseDTO.setMessage("Fill the data ");
+            responseDTO.setStatusCode(-1L);
+            return responseDTO;
         }
 
         Product productExist = productRepository.findByProductName(productDTO.getProductName());
@@ -57,13 +60,17 @@ public class ProductService {
         productNew.setCategory(category);
         Product savedProduct = productRepository.save(productNew);
 
-        return convertToDto(savedProduct);
+        responseDTO.setMessage("Added Successfully");
+        responseDTO.setStatusCode(0L);
+        return responseDTO;
     }
 
-    public ProductResponseDTO updateProduct(ProductRequestDTO productDTO) {
+        public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO) {
         Product productExist = productRepository.findByProductName(productDTO.getProductName());
         if (productExist == null) {
-            throw new RuntimeException("Product didn't Exist. Please Add Product");
+            responseDTO.setMessage("Product didn't Exist. Please Add Product");
+            responseDTO.setStatusCode(-4L);
+            return responseDTO;
         }
 
         Category category = categoryRepository.findById(productDTO.getCategoryID())
@@ -77,7 +84,9 @@ public class ProductService {
         productExist.setStockQuantity(productDTO.getStockQuantity());
 
         Product updatedProduct = productRepository.save(productExist);
-        return convertToDto(updatedProduct);
+            responseDTO.setMessage("Product updated");
+            responseDTO.setStatusCode(0L);
+            return responseDTO;
     }
 
     public ProductResponseDTO getProductById(Long id) {
