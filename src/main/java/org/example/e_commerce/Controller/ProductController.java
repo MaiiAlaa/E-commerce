@@ -41,7 +41,7 @@ public class ProductController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<SignUpResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO productDTO) {// req body coming from postman
+    public ResponseEntity<SignUpResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO  productDTO) {// req body coming from postman
 
         SignUpResponseDTO response = productService.addProduct(productDTO);
 
