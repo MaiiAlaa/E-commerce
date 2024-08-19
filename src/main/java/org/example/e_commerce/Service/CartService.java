@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -45,21 +44,24 @@ public class CartService {
     public SignUpResponseDTO AddToCart(String token, PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
         String username = jwtUtil.extractUsername(token);
         Optional<User> userOptional = userrepo.findByUsername(username);
+
         if (!userOptional.isPresent()) {
-                responseDTO.setMessage("User not found with username: " + username);
-                responseDTO.setStatusCode(-1L);
-                return responseDTO;
+            responseDTO.setMessage("User not found with username: " + username);
+            responseDTO.setStatusCode(-1L);
+            return responseDTO;
         }
+
         User user = userOptional.get();
         Long userId = user.getUserid();
         Cart cart = cartRepo.findByUserid(userId).orElse(null);
-        if (cart ==null) {
-                cart = new Cart();
-                cart.setUserid(userId);
-                cartRepo.save(cart);
-                responseDTO.setMessage("CART CREATED");
-                responseDTO.setStatusCode(0L);
-                return responseDTO;
+
+        if (cart == null) {
+            cart = new Cart();
+            cart.setUserid(userId);
+            cartRepo.save(cart);
+            responseDTO.setMessage("CART CREATED");
+            responseDTO.setStatusCode(0L);
+            return responseDTO;
         }
 
         Product product = productRepo.findById(productRequestDTO.getProductId())
@@ -100,6 +102,7 @@ public class CartService {
                 if (product.getStockQuantity() < productRequest.getQuantity()) {
                     return new SignUpResponseDTO("Insufficient stock for product: " + productRequest.getProductId(), (long) HttpStatus.BAD_REQUEST.value());
                 }
+
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
 
@@ -130,9 +133,5 @@ public class CartService {
         } catch (RuntimeException e) {
             return new SignUpResponseDTO("Error: " + e.getMessage(), (long) HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
-    }
-
-    public List<Transaction> getAllTransactions(){
-        return transactionRepo.getAllTransactions();
     }
 }
