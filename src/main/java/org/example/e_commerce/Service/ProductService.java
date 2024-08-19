@@ -14,7 +14,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -117,13 +119,15 @@ public class ProductService {
         return responseDTO;
     }
 
-    public ProductResponseDTO getProductById(Long id) {
+    public Map<String, Object> getProductById(Long id) {
+        Map<String, Object> response = new HashMap<>();
 
-        Product product = productRepository.findById(id)
-                .orElse(null);
+        Product product = productRepository.findById(id).orElse(null);
 
         if (product == null) {
-            return new ProductResponseDTO("Product not found with id: " + id, -1L);
+            response.put("statusCode", -1L);
+            response.put("message", "Product not found with id: " + id);
+            return response;
         }
 
         List<String> imageUrls = productImagesRepository.findAllByProduct_ProductId(product.getProductId())
@@ -131,7 +135,7 @@ public class ProductService {
                 .map(ProductImages::getImageUrl)
                 .collect(Collectors.toList());
 
-        return new ProductResponseDTO(
+        ProductResponseDTO productDTO = new ProductResponseDTO(
                 product.getProductId(),
                 product.getProductName(),
                 product.getPrice(),
@@ -142,6 +146,12 @@ public class ProductService {
                 product.getImageUrl(), // main image
                 imageUrls // additional images
         );
+
+        response.put("statusCode", 0L);
+        response.put("message", "Product retrieved successfully");
+        response.put("product", productDTO);
+
+        return response;
     }
 
     public List<Product> searchProducts(String searchTerm) {
@@ -151,23 +161,33 @@ public class ProductService {
         return productRepository.findProductCategoryId(categoryId);
     }
 
-    public List<ProductsResponseDTO> getAllProducts() {
+    public Map<String, Object> getAllProducts() {
         List<Product> products = productRepository.findAll();
+        Map<String, Object> response = new HashMap<>();
 
         if (products.isEmpty()) {
-            return List.of(new ProductsResponseDTO("No products found", -1L));
+            response.put("statusCode", -1L);
+            response.put("message", "No products found");
+            return response;
         }
 
-        return products.stream().map(product -> new ProductsResponseDTO(
-                product.getProductId(),
-                product.getProductName(),
-                product.getPrice(),
-                product.getStockQuantity(),
-                product.getCategory().getCategoryid(),
-                product.getCategory().getName(),
-                product.getImageUrl()  // Assuming the main image URL is stored here
-        )).collect(Collectors.toList());
-    }
+        List<ProductsResponseDTO> productDTOs = products.stream()
+                .map(product -> new ProductsResponseDTO(
+                        product.getProductId(),
+                        product.getProductName(),
+                        product.getPrice(),
+                        product.getStockQuantity(),
+                        product.getCategory().getCategoryid(),
+                        product.getCategory().getName(),
+                        product.getImageUrl()  // Assuming the main image URL is stored here
+                ))
+                .collect(Collectors.toList());
 
+        response.put("statusCode", 0L);
+        response.put("message", "Products retrieved successfully");
+        response.put("products", productDTOs);
+
+        return response;
+    }
 
 }
