@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -26,14 +28,19 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getProductById(@PathVariable Long id) {
         ProductResponseDTO response = productService.getProductById(id);
 
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("statusCode", response.getStatusCode());
+        responseBody.put("message", response.getMessage());
+
         if (response.getStatusCode() != 0L) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         }
 
-        return ResponseEntity.ok(response);
+        responseBody.put("product", response);
+        return ResponseEntity.ok(responseBody);
     }
 
     @PostMapping("/update")
@@ -68,14 +75,20 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductsResponseDTO>> getAllProducts() {
+    public ResponseEntity<Map<String, Object>> getAllProducts() {
         List<ProductsResponseDTO> response = productService.getAllProducts();
 
+        Map<String, Object> responseBody = new HashMap<>();
         if (!response.isEmpty() && response.get(0).getStatusCode() != 0L) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+            responseBody.put("statusCode", response.get(0).getStatusCode());
+            responseBody.put("message", response.get(0).getMessage());
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
         }
 
-        return ResponseEntity.ok(response);
+        responseBody.put("statusCode", 0L); // Assuming 0L is a success status code
+        responseBody.put("message", "Products retrieved successfully");
+        responseBody.put("products", response);
+        return ResponseEntity.ok(responseBody);
     }
 
     @GetMapping("/search")
