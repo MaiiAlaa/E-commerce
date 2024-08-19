@@ -30,7 +30,7 @@ public class ProductService {
     private ModelMapper modelMapper;
 
     @Autowired
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository , ProductImagesRepository productImagesRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductImagesRepository productImagesRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.productImagesRepository = productImagesRepository;
@@ -44,8 +44,7 @@ public class ProductService {
         if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
                 productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
                 productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null
-                || productDTO.getMainImageUrl() == null )
-        {
+                || productDTO.getMainImageUrl() == null) {
             responseDTO.setMessage("Fill the data ");
             responseDTO.setStatusCode(-1L);
             return responseDTO;
@@ -131,7 +130,7 @@ public class ProductService {
                 .map(ProductImages::getImageUrl)
                 .collect(Collectors.toList());
 
-        return new ProductResponseDTO(
+        ProductResponseDTO response = new ProductResponseDTO(
                 product.getProductId(),
                 product.getProductName(),
                 product.getPrice(),
@@ -139,15 +138,20 @@ public class ProductService {
                 product.getDescription(),
                 product.getCategory().getCategoryid(),
                 product.getCategory().getName(),
-                product.getImageUrl(), // main image
-                imageUrls // additional images
+                product.getImageUrl(),
+                imageUrls
         );
+
+        response.setMessage("Product retrieved successfully");
+        response.setStatusCode(0L);
+        return response;
     }
 
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
     }
-    public List<Product>findProductCategoryId(Long categoryId){
+
+    public List<Product> findProductCategoryId(Long categoryId) {
         return productRepository.findProductCategoryId(categoryId);
     }
 
@@ -158,16 +162,23 @@ public class ProductService {
             return List.of(new ProductsResponseDTO("No products found", -1L));
         }
 
-        return products.stream().map(product -> new ProductsResponseDTO(
-                product.getProductId(),
-                product.getProductName(),
-                product.getPrice(),
-                product.getStockQuantity(),
-                product.getCategory().getCategoryid(),
-                product.getCategory().getName(),
-                product.getImageUrl()  // Assuming the main image URL is stored here
-        )).collect(Collectors.toList());
+        List<ProductsResponseDTO> productDTOs = products.stream()
+                .map(product -> new ProductsResponseDTO(
+                        product.getProductId(),
+                        product.getProductName(),
+                        product.getPrice(),
+                        product.getStockQuantity(),
+                        product.getCategory().getCategoryid(),
+                        product.getCategory().getName(),
+                        product.getImageUrl()  // Assuming the main image URL is stored here
+                ))
+                .collect(Collectors.toList());
+
+        // Adding a success message to the first item
+        if (!productDTOs.isEmpty()) {
+            productDTOs.get(0).setMessage("Products retrieved successfully");
+            productDTOs.get(0).setStatusCode(0L);
+        }
+        return productDTOs;
     }
-
-
 }
