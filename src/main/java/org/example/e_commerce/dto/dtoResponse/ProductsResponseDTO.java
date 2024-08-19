@@ -1,39 +1,32 @@
 package org.example.e_commerce.dto.dtoResponse;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import java.util.List;
 
-@Setter
-@Getter
-public class ProductResponseDTO {
+@Data
+public class ProductsResponseDTO {
     private Long id;
     private String name;
     private Double price;
     private Integer stock;
-    private String description;
     private Long category_id;
     private String category_name;
     private String mainImageUrl; // Main image URL
-    private List<String> imageUrls; // Additional image URLs
-    private String message; // Validation message
+    private String message; // Validation or success message
     private Long statusCode;
 
-    public ProductResponseDTO(Long id, String name, Double price, Integer stock, String description, Long category_id, String category_name , String mainImageUrl, List<String> imageUrls) {
+    public ProductsResponseDTO(Long id, String name, Double price, Integer stock, Long category_id, String category_name , String mainImageUrl) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.description = description;
         this.category_id = category_id;
         this.category_name = category_name;
         this.mainImageUrl = mainImageUrl;
-        this.imageUrls = imageUrls;
-        this.message = "Product retrieved successfully";
+        this.message = "Products retrieved successfully";
         this.statusCode = 0L;
     }
-
-    public ProductResponseDTO(String message, Long statusCode) {
+    public ProductsResponseDTO(String message, Long statusCode) {
         this.message = message;
         this.statusCode = statusCode;
     }
