@@ -29,12 +29,13 @@ public class ProductResponseDTO {
         this.category_name = category_name;
         this.mainImageUrl = mainImageUrl;
         this.imageUrls = imageUrls;
-        this.message = "Product retrieved successfully";
-        this.statusCode = 0L;
     }
 
     public ProductResponseDTO(String message, Long statusCode) {
         this.message = message;
         this.statusCode = statusCode;
+    }
+
+    public ProductResponseDTO() {
     }
 }
