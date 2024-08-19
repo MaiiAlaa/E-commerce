@@ -5,6 +5,7 @@ import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,14 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ProductResponseDTO getProductById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Long id) {
+        ProductResponseDTO response = productService.getProductById(id);
+
+        if (response.getStatusCode() != 0L) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/update")
@@ -61,8 +68,14 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponseDTO> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductsResponseDTO>> getAllProducts() {
+        List<ProductsResponseDTO> response = productService.getAllProducts();
+
+        if (!response.isEmpty() && response.get(0).getStatusCode() != 0L) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/search")

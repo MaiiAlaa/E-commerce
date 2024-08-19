@@ -8,6 +8,7 @@ import org.example.e_commerce.Repository.ProductImagesRepository;
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.example.e_commerce.Repository.CategoryRepository;
+import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,8 +118,13 @@ public class ProductService {
     }
 
     public ProductResponseDTO getProductById(Long id) {
+
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElse(null);
+
+        if (product == null) {
+            return new ProductResponseDTO("Product not found with id: " + id, -1L);
+        }
 
         List<String> imageUrls = productImagesRepository.findAllByProduct_ProductId(product.getProductId())
                 .stream()
@@ -145,25 +151,22 @@ public class ProductService {
         return productRepository.findProductCategoryId(categoryId);
     }
 
-    public List<ProductResponseDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::convertToDtoForAllProducts)
-                .collect(Collectors.toList());
-    }
+    public List<ProductsResponseDTO> getAllProducts() {
+        List<Product> products = productRepository.findAll();
 
-    // Method used by getAllProducts to exclude imageUrls
-    private ProductResponseDTO convertToDtoForAllProducts(Product product) {
-        return new ProductResponseDTO(
+        if (products.isEmpty()) {
+            return List.of(new ProductsResponseDTO("No products found", -1L));
+        }
+
+        return products.stream().map(product -> new ProductsResponseDTO(
                 product.getProductId(),
                 product.getProductName(),
                 product.getPrice(),
                 product.getStockQuantity(),
-                product.getDescription(),
                 product.getCategory().getCategoryid(),
                 product.getCategory().getName(),
-                product.getImageUrl(), // Main image URL
-                null // Exclude additional image URLs
-        );
+                product.getImageUrl()  // Assuming the main image URL is stored here
+        )).collect(Collectors.toList());
     }
 
 
