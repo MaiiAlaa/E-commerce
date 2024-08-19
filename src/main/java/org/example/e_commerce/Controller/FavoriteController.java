@@ -39,21 +39,18 @@ public class FavoriteController {
 
     @PostMapping("/add")
     public ResponseEntity<FavoriteRequestDTO> addFavorite(
-            @Valid @RequestBody FavoriteRequestDTO favoriteRequestDTO,
-            @RequestParam Long userId,
-            @RequestParam Long productId,
-            @RequestParam Long categoryId) {
+            @Valid @RequestBody FavoriteRequestDTO favoriteRequestDTO) {
 
         try {
-            User user = userService.getUserById(userId)
+            User user = userService.getUserById(favoriteRequestDTO.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            Map<String, Object> products = productService.getProductById(productId);
-            Product product = (Product) products.get(productId);
+            Map<String, Object> products = productService.getProductById(favoriteRequestDTO.getProductId());
+            Product product = (Product) products.get(favoriteRequestDTO.getProductId());
             if (product == null) {
                 throw new RuntimeException("Product not found");
             }
             // Fetching category using the service method
-            CategoryResponseDTO categoryResponse = categoryService.getCategoryById(categoryId);
+            CategoryResponseDTO categoryResponse = categoryService.getCategoryById(favoriteRequestDTO.getCategoryId());
             Category category = categoryResponse.getCategory();
             if (category == null) {
                 throw new RuntimeException("Category not found");
