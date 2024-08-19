@@ -12,8 +12,6 @@ public class ProductsResponseDTO {
     private Long category_id;
     private String category_name;
     private String mainImageUrl; // Main image URL
-    private String message; // Validation or success message
-    private Long statusCode;
 
     public ProductsResponseDTO(Long id, String name, Double price, Integer stock, Long category_id, String category_name , String mainImageUrl) {
         this.id = id;
@@ -23,10 +21,6 @@ public class ProductsResponseDTO {
         this.category_id = category_id;
         this.category_name = category_name;
         this.mainImageUrl = mainImageUrl;
-    }
-    public ProductsResponseDTO(String message, Long statusCode) {
-        this.message = message;
-        this.statusCode = statusCode;
     }
 
     public ProductsResponseDTO() {
