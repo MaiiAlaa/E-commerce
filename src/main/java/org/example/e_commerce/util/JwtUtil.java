@@ -49,4 +49,13 @@ public class JwtUtil {
     public boolean validateToken(String token, String username) {
         return (username.equals(extractUsername(token)) && !isTokenExpired(token));
     }
+    public Long extractUserId(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return Long.parseLong(claims.getSubject()); // Assuming user ID is stored in subject
+    }
+
 }

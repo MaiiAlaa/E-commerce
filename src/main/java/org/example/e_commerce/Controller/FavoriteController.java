@@ -8,7 +8,7 @@ import org.example.e_commerce.dto.dtoRequest.FavoriteRequestDTO;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.Category;
-import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
+import org.example.e_commerce.util.JwtUtil; // Add this import
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,38 +27,52 @@ public class FavoriteController {
     private final UserService userService;
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final JwtUtil jwtUtil; // Add this field
 
     @Autowired
     public FavoriteController(FavoriteService favoriteService, UserService userService,
-                              ProductService productService, CategoryService categoryService) {
+                              ProductService productService, CategoryService categoryService, JwtUtil jwtUtil) {
         this.favoriteService = favoriteService;
         this.userService = userService;
         this.productService = productService;
         this.categoryService = categoryService;
+        this.jwtUtil = jwtUtil; // Initialize the JwtUtil
     }
 
     @PostMapping("/add")
     public ResponseEntity<FavoriteRequestDTO> addFavorite(
-            @Valid @RequestBody FavoriteRequestDTO favoriteRequestDTO) {
+            @Valid @RequestBody FavoriteRequestDTO favoriteRequestDTO,
+            @RequestHeader("Authorization") String token) {
 
         try {
-            User user = userService.getUserById(favoriteRequestDTO.getUserId())
+            // Extract user ID from the token
+            String jwtToken = token.replace("Bearer ", ""); // Remove "Bearer " prefix if present
+            Long userId = jwtUtil.extractUserId(jwtToken);
+            User user = userService.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            Map<String, Object> products = productService.getProductById(favoriteRequestDTO.getProductId());
-            Product product = (Product) products.get(favoriteRequestDTO.getProductId());
-            if (product == null) {
-                throw new RuntimeException("Product not found");
+
+            // Fetch product and handle the response map
+            Map<String, Object> productResponse = productService.getProductById(favoriteRequestDTO.getProductId());
+            if ((Long) productResponse.get("statusCode") == -1) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            // Fetching category using the service method
-            CategoryResponseDTO categoryResponse = categoryService.getCategoryById(favoriteRequestDTO.getCategoryId());
-            Category category = categoryResponse.getCategory();
-            if (category == null) {
-                throw new RuntimeException("Category not found");
+            Product product = (Product) productResponse.get("product");
+
+            // Fetch category and handle the response map
+            Map<String, Object> categoryResponse = (Map<String, Object>) categoryService.getCategoryById(favoriteRequestDTO.getCategoryId());
+            if ((Long) categoryResponse.get("statusCode") == -1) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
+            Category category = (Category) categoryResponse.get("category");
+
+            // Update favoriteRequestDTO with user ID
+            favoriteRequestDTO.setUserId(userId);
+
             FavoriteRequestDTO savedFavorite = favoriteService.saveFavorite(favoriteRequestDTO, user, product, category);
             return new ResponseEntity<>(savedFavorite, HttpStatus.CREATED);
+
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

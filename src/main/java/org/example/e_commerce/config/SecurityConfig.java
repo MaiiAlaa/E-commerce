@@ -27,17 +27,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Disable CSRF protection
+        http
+                .csrf(csrf -> csrf.disable()) // Disable CSRF protection
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
                             .requestMatchers("/api/auth/signin", "/api/auth/signup").permitAll() // Allow access without token
+                            .requestMatchers("/api/favorites/**").authenticated() // Require authentication for favorites
                             .anyRequest().authenticated(); // Require authentication for all other requests
                 })
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
-
-        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
