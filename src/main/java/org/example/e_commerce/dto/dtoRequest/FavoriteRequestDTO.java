@@ -13,7 +13,7 @@ public class FavoriteRequestDTO {
     public FavoriteRequestDTO() {
     }
 
-    public FavoriteRequestDTO(Long favoriteId, Long userId, Long productId, Long categoryId, LocalDateTime createdAt) {
+    public FavoriteRequestDTO(Long favoriteId, Long userId, Long productId, Long categoryId) {
         this.favoriteId = favoriteId;
         this.userId = userId;
         this.productId = productId;

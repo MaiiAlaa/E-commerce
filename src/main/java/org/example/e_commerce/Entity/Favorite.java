@@ -30,6 +30,10 @@ public class Favorite {
         this.category = category;
     }
 
+    public Favorite() {
+
+    }
+
     // Getters and Setters
 
     public Long getFavoriteId() {

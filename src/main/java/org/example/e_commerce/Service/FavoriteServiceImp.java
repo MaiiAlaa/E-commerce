@@ -16,8 +16,12 @@ import java.util.stream.Collectors;
 @Service
 public class FavoriteServiceImp implements FavoriteService {
 
+    private final FavoriteRepository favoriteRepository;
+
     @Autowired
-    private FavoriteRepository favoriteRepository;
+    public FavoriteServiceImp(FavoriteRepository favoriteRepository) {
+        this.favoriteRepository = favoriteRepository;
+    }
 
     @Override
     public FavoriteRequestDTO saveFavorite(FavoriteRequestDTO favoriteRequestDTO, User user, Product product, Category category) {
@@ -36,8 +40,8 @@ public class FavoriteServiceImp implements FavoriteService {
 
     @Override
     public Optional<FavoriteRequestDTO> getFavoriteById(Long favoriteId) {
-        Optional<Favorite> favorite = favoriteRepository.findById(favoriteId);
-        return favorite.map(this::convertToDto);
+        return favoriteRepository.findById(favoriteId)
+                .map(this::convertToDto);
     }
 
     @Override
@@ -50,8 +54,7 @@ public class FavoriteServiceImp implements FavoriteService {
                 favorite.getFavoriteId(),
                 favorite.getUser().getUserid(),
                 favorite.getProduct() != null ? favorite.getProduct().getProductId() : null,
-                favorite.getCategory() != null ? favorite.getCategory().getCategoryid() : null,
-                favorite.getCreatedAt()
+                favorite.getCategory() != null ? favorite.getCategory().getCategoryid() : null
         );
     }
 
@@ -61,7 +64,7 @@ public class FavoriteServiceImp implements FavoriteService {
         favorite.setUser(user);
         favorite.setProduct(product);
         favorite.setCategory(category);
-        favorite.setCreatedAt(favoriteRequestDTO.getCreatedAt());
+        // No handling of createdAt since it's not needed
         return favorite;
     }
 }
