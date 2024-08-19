@@ -1,4 +1,4 @@
-/*package org.example.e_commerce.Controller;
+package org.example.e_commerce.Controller;
 
 import org.example.e_commerce.Service.FavoriteService;
 import org.example.e_commerce.Service.UserService;
@@ -8,6 +8,7 @@ import org.example.e_commerce.dto.dtoRequest.FavoriteRequestDTO;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.Category;
+import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -45,11 +47,17 @@ public class FavoriteController {
         try {
             User user = userService.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            Product product = productService.getProductById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-            Category category = categoryService.getCategoryById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-
+            Map<String, Object> products = productService.getProductById(productId);
+            Product product = (Product) products.get(productId);
+            if (product == null) {
+                throw new RuntimeException("Product not found");
+            }
+            // Fetching category using the service method
+            CategoryResponseDTO categoryResponse = categoryService.getCategoryById(categoryId);
+            Category category = categoryResponse.getCategory();
+            if (category == null) {
+                throw new RuntimeException("Category not found");
+            }
             FavoriteRequestDTO savedFavorite = favoriteService.saveFavorite(favoriteRequestDTO, user, product, category);
             return new ResponseEntity<>(savedFavorite, HttpStatus.CREATED);
         } catch (RuntimeException e) {
@@ -94,4 +102,3 @@ public class FavoriteController {
         }
     }
 }
-*/
