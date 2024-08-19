@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Generate a secure key
+    private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Ensure this key is securely managed
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -22,14 +22,17 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2)) // 2 hours
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2))
+                .signWith(secretKey)
                 .compact();
     }
 
     public Claims extractClaims(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7); // Remove "Bearer " prefix
+        }
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

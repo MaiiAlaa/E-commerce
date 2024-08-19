@@ -41,17 +41,18 @@ public class CartService {
     SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
     @Transactional
-    public SignUpResponseDTO AddToCart(String Token, PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
-        String username = jwtUtil.extractUsername(Token);
-        Optional<Long> userIdOptional = userrepo.getUserIdByUsername(username);
+    public SignUpResponseDTO AddToCart(String token, PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
+        String username = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userrepo.findByUsername(username);
 
-        if (!userIdOptional.isPresent()) {
+        if (!userOptional.isPresent()) {
             responseDTO.setMessage("User not found with username: " + username);
             responseDTO.setStatusCode(-1L);
             return responseDTO;
         }
 
-        Long userId = userIdOptional.get();
+        User user = userOptional.get();
+        Long userId = user.getUserid();
         Cart cart = cartRepo.findByUserid(userId).orElse(null);
 
         if (cart == null) {
