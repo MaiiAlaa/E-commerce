@@ -29,18 +29,8 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getProductById(@PathVariable Long id) {
-        ProductResponseDTO response = productService.getProductById(id);
-
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("statusCode", response.getStatusCode());
-        responseBody.put("message", response.getMessage());
-
-        if (response.getStatusCode() != 0L) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
-        }
-
-        responseBody.put("product", response);
-        return ResponseEntity.ok(responseBody);
+        Map<String, Object> response = productService.getProductById(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/update")
@@ -76,19 +66,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllProducts() {
-        List<ProductsResponseDTO> response = productService.getAllProducts();
-
-        Map<String, Object> responseBody = new HashMap<>();
-        if (!response.isEmpty() && response.get(0).getStatusCode() != 0L) {
-            responseBody.put("statusCode", response.get(0).getStatusCode());
-            responseBody.put("message", response.get(0).getMessage());
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(responseBody);
-        }
-
-        responseBody.put("statusCode", 0L); // Assuming 0L is a success status code
-        responseBody.put("message", "Products retrieved successfully");
-        responseBody.put("products", response);
-        return ResponseEntity.ok(responseBody);
+        Map<String, Object> response = productService.getAllProducts();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/search")
