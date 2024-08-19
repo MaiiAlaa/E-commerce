@@ -23,19 +23,11 @@ public class Favorite {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    // Constructors
-    public Favorite() {
-        this.createdAt = LocalDateTime.now();
-    }
 
     public Favorite(User user, Product product, Category category) {
         this.user = user;
         this.product = product;
         this.category = category;
-        this.createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -72,12 +64,5 @@ public class Favorite {
         this.category = category;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }
 

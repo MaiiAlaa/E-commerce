@@ -8,7 +8,6 @@ public class FavoriteRequestDTO {
     private Long userId;
     private Long productId;
     private Long categoryId;
-    private LocalDateTime createdAt;
 
     // Constructors
     public FavoriteRequestDTO() {
@@ -19,7 +18,6 @@ public class FavoriteRequestDTO {
         this.userId = userId;
         this.productId = productId;
         this.categoryId = categoryId;
-        this.createdAt = createdAt;
     }
 
     // Getters and Setters
@@ -54,13 +52,5 @@ public class FavoriteRequestDTO {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

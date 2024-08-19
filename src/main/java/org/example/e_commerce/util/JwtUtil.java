@@ -3,7 +3,9 @@ package org.example.e_commerce.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -14,32 +16,51 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private final Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Ensure this key is securely managed
+    @Value("${jwt.secret}")
+    private String secret;
 
-    public String generateToken(String username) {
+    @Value("${jwt.expiration}")
+    private long jwtExpirationInMs;
+
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateToken(String username, Long userId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId); // Adding userId to the claims
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2))
-                .signWith(secretKey)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
+                .signWith(getSigningKey())
                 .compact();
     }
 
     public Claims extractClaims(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7); // Remove "Bearer " prefix
+        try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+            return Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid JWT token");
         }
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
     }
 
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = extractClaims(token);
+        return claims.get("userId", Long.class);
     }
 
     public boolean isTokenExpired(String token) {
@@ -49,13 +70,4 @@ public class JwtUtil {
     public boolean validateToken(String token, String username) {
         return (username.equals(extractUsername(token)) && !isTokenExpired(token));
     }
-    public Long extractUserId(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return Long.parseLong(claims.getSubject()); // Assuming user ID is stored in subject
-    }
-
 }

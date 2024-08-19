@@ -50,6 +50,7 @@ public class FavoriteController {
             Long userId = jwtUtil.extractUserId(jwtToken);
             User user = userService.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+            System.out.println("Retrieved User: " + user);
 
             // Fetch product and handle the response map
             Map<String, Object> productResponse = productService.getProductById(favoriteRequestDTO.getProductId());
@@ -57,6 +58,7 @@ public class FavoriteController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
             Product product = (Product) productResponse.get("product");
+            System.out.println("Product Response: " + productResponse);
 
             // Fetch category and handle the response map
             Map<String, Object> categoryResponse = (Map<String, Object>) categoryService.getCategoryById(favoriteRequestDTO.getCategoryId());
@@ -64,6 +66,7 @@ public class FavoriteController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
             Category category = (Category) categoryResponse.get("category");
+            System.out.println("Category Response: " + categoryResponse);
 
             // Update favoriteRequestDTO with user ID
             favoriteRequestDTO.setUserId(userId);
