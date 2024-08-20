@@ -1,5 +1,6 @@
 package org.example.e_commerce.Entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -42,5 +43,6 @@ public class Product {
     private String imageUrl;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<ProductImages> productImages; // All images related to this product
 }

@@ -1,5 +1,6 @@
 package org.example.e_commerce.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,6 +19,7 @@ public class ProductImages {
 
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "productid", nullable = false)
+        @JsonBackReference
         private Product product;
 
 }
