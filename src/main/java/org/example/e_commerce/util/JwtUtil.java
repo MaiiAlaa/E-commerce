@@ -3,7 +3,6 @@ package org.example.e_commerce.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,15 +15,13 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret.key}")
-    private String secret;
+    private final Key secret = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     @Value("${jwt.expiration}")
     private long jwtExpirationInMs;
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return secret;
     }
 
     public String generateToken(String username, Long userId) {
@@ -35,7 +32,7 @@ public class JwtUtil {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
-                .signWith(getSigningKey())
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -50,7 +47,7 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
-            throw new RuntimeException("Invalid JWT token");
+            throw new RuntimeException("Invalid JWT token", e);
         }
     }
 
