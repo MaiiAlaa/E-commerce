@@ -74,8 +74,11 @@ public class ProductController {
     public ResponseEntity<List<Product>> searchProducts(@RequestParam String search) {
         List<Product> products = productService.searchProducts(search);
         if (products.isEmpty()) {
+
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(products);
     }
 }
+
+
