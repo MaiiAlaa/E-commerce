@@ -1,10 +1,11 @@
 package org.example.e_commerce.util;
 
 import io.jsonwebtoken.*;
-import jakarta.annotation.PostConstruct;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,16 +14,13 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret.key}")
-    private String secretKey;
+    private final SecretKey secretKey;
 
-    /*
-    @PostConstruct
-    public void init() {
-        // Log the secret key length to verify it's being injected correctly
-        System.out.println("Secret Key Length: " + secretKey.length());
+
+    public JwtUtil(@Value("${jwt.secret.key}") String base64SecretKey) {
+        byte[] keyBytes = Decoders.BASE64.decode(base64SecretKey);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes); // Decode the base64 key and create a SecretKey
     }
-    */
 
     // Generate JWT token
     public String generateToken(Long userId, String username) {
