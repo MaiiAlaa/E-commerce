@@ -1,6 +1,7 @@
 package org.example.e_commerce.util;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -11,12 +12,13 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private String secretKey = "kOIO5M0nwFy57d7ROvdRS79VaKv25IPzm14RV8ZRgDM="; // Set your generated secret key here
+    @Value("${jwt.secret.key}")
+    private String secretKey;
 
     // Generate JWT token
-    public String generateToken(Long userId, String userName) {
+    public String generateToken(Long userId, String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", userName); // Add username to claims
+        claims.put("username", username); // Add username to claims
         return createToken(claims, userId);
     }
 
@@ -31,9 +33,9 @@ public class JwtUtil {
     }
 
     // Validate JWT token
-    public Boolean validateToken(String token, String userId) {
-        final String extractedUserId = extractUserId(token);
-        return (extractedUserId.equals(userId) && !isTokenExpired(token));
+    public Boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
     // Extract user ID from JWT token
@@ -46,7 +48,7 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("username", String.class));
     }
 
-    // Extract a claim (like user ID) from JWT token
+    // Extract a claim from JWT token
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
