@@ -70,7 +70,7 @@ public class UserController {
             Optional<User> userOpt = userServiceImp.getUserByUsername(signInRequestDTO.getUsername());
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                String token = jwtUtil.generateToken(user.getUsername(),user.getUserid());
+                String token = jwtUtil.generateToken(user.getUserid(),user.getUsername());
 
                 Map<String, Object> responseBody = new HashMap<>();
                 Map<String, Object> status = new HashMap<>();
