@@ -3,6 +3,7 @@ package org.example.e_commerce.util;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
@@ -14,10 +15,13 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final SecretKey secretKey;
+    @Value("${jwt.secret.key}")
+    private String base64SecretKey;
 
+    private SecretKey secretKey;
 
-    public JwtUtil(@Value("${jwt.secret.key}") String base64SecretKey) {
+    @PostConstruct
+    public void init() {
         byte[] keyBytes = Decoders.BASE64.decode(base64SecretKey);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes); // Decode the base64 key and create a SecretKey
     }
