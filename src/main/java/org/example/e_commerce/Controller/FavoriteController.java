@@ -1,4 +1,4 @@
-package org.example.e_commerce.Controller;
+/*package org.example.e_commerce.Controller;
 
 import org.example.e_commerce.Service.FavoriteService;
 import org.example.e_commerce.Service.UserService;
@@ -116,3 +116,4 @@ public class FavoriteController {
         }
     }
 }
+*/
