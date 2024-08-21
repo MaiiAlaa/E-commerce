@@ -1,12 +1,10 @@
 package org.example.e_commerce.util;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,14 +13,16 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final SecretKey secretKey;
+    @Value("${jwt.secret.key}")
+    private String secretKey;
 
-    public JwtUtil(@Value("${jwt.secret.key}") String secretKeyString) {
-        if (secretKeyString.length() < 32) {
-            throw new IllegalArgumentException("The secret key must be at least 256 bits (32 bytes) long");
-        }
-        this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
+    /*
+    @PostConstruct
+    public void init() {
+        // Log the secret key length to verify it's being injected correctly
+        System.out.println("Secret Key Length: " + secretKey.length());
     }
+    */
 
     // Generate JWT token
     public String generateToken(Long userId, String username) {
@@ -37,7 +37,7 @@ public class JwtUtil {
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours expiration
-                .signWith(secretKey) // Use the SecretKey directly
+                .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
