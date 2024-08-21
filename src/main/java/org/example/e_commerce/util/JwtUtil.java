@@ -3,10 +3,10 @@ package org.example.e_commerce.util;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import javax.crypto.SecretKey;
+
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,14 +16,12 @@ import java.util.function.Function;
 public class JwtUtil {
 
     @Value("${jwt.secret.key}")
-    private String base64SecretKey;
+    private String secretKey;
 
-    private SecretKey secretKey;
-
-    @PostConstruct
-    public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(base64SecretKey);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes); // Decode the base64 key and create a SecretKey
+    // Convert the secretKey string to a Key object
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(this.secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     // Generate JWT token
@@ -39,7 +37,7 @@ public class JwtUtil {
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours expiration
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -66,7 +64,8 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        JwtParser jwtParser = Jwts.parser().setSigningKey(secretKey).build();
+        // Use the Key object instead of a String for the signing key
+        JwtParser jwtParser = Jwts.parser().setSigningKey(getSigningKey()).build();
         try {
             return jwtParser.parseClaimsJws(token).getBody();
         } catch (JwtException e) {
