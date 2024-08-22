@@ -36,6 +36,10 @@ public class CategoryService {
         if (role.equals("USER")){
             return new CategoryResponseDTO("You do not have the necessary permissions to perform this action.", 403L, null);
         }
+
+        if (role == null || role.isEmpty()) {
+            throw new IllegalArgumentException("Role must be provided");
+        }
         return new CategoryResponseDTO("Category created successfully", 201L, savedCategory);
     }
 
