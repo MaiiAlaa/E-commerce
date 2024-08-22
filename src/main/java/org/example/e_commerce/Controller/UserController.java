@@ -9,6 +9,7 @@ import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +68,16 @@ public class UserController {
             response.setStatusCode(HttpStatus.CREATED.value());  // Set status code for successful registration
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
-        } catch (Exception e) {
+        }
+
+        catch (HttpMessageNotReadableException e) {
+                // Handle invalid JSON format error
+                response.setMessage("Invalid JSON format");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        catch (Exception e) {
             e.printStackTrace();
             response.setMessage("An unexpected error occurred. Please try again later.");
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());  // Set status code for server error
