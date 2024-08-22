@@ -46,6 +46,9 @@ public class JwtUtil {
     }
 
     private String decryptRole(String encryptedRole) {
+        if (encryptedRole == null) {
+            throw new IllegalArgumentException("The encrypted role cannot be null.");
+        }
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, getEncryptionKey());
