@@ -50,6 +50,7 @@ public class JwtUtil {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, getEncryptionKey());
             byte[] original = cipher.doFinal(Base64.getDecoder().decode(encryptedRole));
+            System.out.println(original);
             return new String(original);
         } catch (Exception e) {
             throw new RuntimeException("Error while decrypting the role", e);
