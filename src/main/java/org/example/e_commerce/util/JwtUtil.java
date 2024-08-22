@@ -46,6 +46,9 @@ public class JwtUtil {
     }
 
     private String decryptRole(String encryptedRole) {
+        if (encryptedRole == null) {
+            throw new IllegalArgumentException("The encrypted role cannot be null.");
+        }
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, getEncryptionKey());
@@ -95,9 +98,10 @@ public class JwtUtil {
 
     // Extract role from JWT token
     public String extractRole(String token) {
-        String encryptedRole = extractClaim(token, claims -> claims.get("role", String.class));
+        String encryptedRole = extractClaim(stripBearerPrefix(token), claims -> claims.get("role", String.class));
         return decryptRole(encryptedRole);
     }
+
 
 
     // Extract a claim from JWT token
@@ -105,6 +109,14 @@ public class JwtUtil {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+
+    private String stripBearerPrefix(String token) {
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
+    }
+
 
     private Claims extractAllClaims(String token) {
         try {
