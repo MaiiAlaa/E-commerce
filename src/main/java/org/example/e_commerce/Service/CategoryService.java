@@ -32,6 +32,7 @@ public class CategoryService {
 
     public CategoryResponseDTO createCategory(Category category , String token) {
         String role = jwtUtil.extractRole(token);
+        System.out.println(role);
         Category savedCategory = categoryRepo.save(category);
         if (role.equals("USER")){
             return new CategoryResponseDTO("You do not have the necessary permissions to perform this action.", 403L, null);
