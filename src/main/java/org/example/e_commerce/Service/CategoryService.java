@@ -16,6 +16,8 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepo;
 
+
+    @Autowired
     JwtUtil jwtUtil = new JwtUtil();
     public List<Category> getAllCategories() {
         return categoryRepo.findAll();
