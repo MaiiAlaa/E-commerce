@@ -36,28 +36,39 @@ public class CategoryController {
 
 
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category) {
-        CategoryResponseDTO response = categoryService.createCategory(category);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category, @RequestHeader("Authorization") String token) {
+        CategoryResponseDTO response = categoryService.createCategory(category, token);
+        HttpStatus status = determineHttpStatus(response);
+        return new ResponseEntity<>(response, status);
     }
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        CategoryResponseDTO response = categoryService.updateCategory(id, category);
-        if (response.getCategory() == null) {
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody Category category) {
+        CategoryResponseDTO response = categoryService.updateCategory(id, category, token);
+        HttpStatus status = determineHttpStatus(response);
+        return new ResponseEntity<>(response, status);
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> deleteCategory(@PathVariable Long id) {
-        CategoryResponseDTO response = categoryService.deleteCategory(id);
-        if (response.getMessage().contains("not found")) {
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    public ResponseEntity<CategoryResponseDTO> deleteCategory(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+        CategoryResponseDTO response = categoryService.deleteCategory(id, token);
+        HttpStatus status = determineHttpStatus(response);
+        return new ResponseEntity<>(response, status);
+    }
+
+    private HttpStatus determineHttpStatus(CategoryResponseDTO response) {
+        if (response.getStatusCode() == 200L) {
+            return HttpStatus.OK;
+        } else if (response.getStatusCode() == 201L) {
+            return HttpStatus.CREATED;
+        } else if (response.getStatusCode() == 403L) {
+            return HttpStatus.FORBIDDEN;
+        } else if (response.getStatusCode() == 404L) {
+            return HttpStatus.NOT_FOUND;
+        } else {
+            return HttpStatus.BAD_REQUEST; // For any other status codes, return a BAD REQUEST
         }
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

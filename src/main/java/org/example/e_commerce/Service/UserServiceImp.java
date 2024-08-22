@@ -1,18 +1,22 @@
 package org.example.e_commerce.Service;
 
+import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Repository.UserRepository;
+import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
+import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class UserServiceImp implements UserService {
-
+    private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -79,4 +83,35 @@ public class UserServiceImp implements UserService {
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public SignUpResponseDTO changePassword(@Valid SignInRequestDTO signInRequestDTO) {
+        SignUpResponseDTO responseDTO = new SignUpResponseDTO();
+
+        // Find the user by username
+        User user = userRepository.findByUsername(signInRequestDTO.getUsername()).orElse(null);
+
+        if (user == null) {
+            responseDTO.setMessage("User not found");
+            responseDTO.setStatusCode(-1);
+            return responseDTO;
+        }
+
+        // Check if the current password matches
+        if (passwordEncoder.matches(signInRequestDTO.getPassword(), user.getPasswordHash())) {
+            // Encode the new password and set it
+            String encodedNewPassword = passwordEncoder.encode(signInRequestDTO.getNewpassword());
+            user.setPasswordHash(encodedNewPassword);
+            userRepository.save(user); // Save the updated user
+
+            responseDTO.setMessage("Password Changed");
+            responseDTO.setStatusCode(0);
+        } else {
+            responseDTO.setMessage("Password not correct. Forgot password?");
+            responseDTO.setStatusCode(-4);
+        }
+
+        return responseDTO;
+    }
+
+
 }
