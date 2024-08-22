@@ -1,5 +1,6 @@
 package org.example.e_commerce.Controller;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Service.UserServiceImp;
 import org.example.e_commerce.dto.dtoRequest.ForgetPasswordRequestDTO;
@@ -18,6 +19,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Slf4j
 public class UserController {
 
     @Autowired
@@ -145,35 +147,42 @@ public class UserController {
 
     @PostMapping("/forgetpassword")
     public ResponseEntity<Map<String, Object>> forgetPassword(@RequestBody ForgetPasswordRequestDTO forgetPasswordRequestDTO) {
-        Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
+        try {
+            Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
 
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
 
-            // Check if the provided security question answer matches
-            if (Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())) {
-                user.setPasswordHash(passwordEncoder.encode(forgetPasswordRequestDTO.getNewpassword())); // Encode the new password
+                // Check if the provided security question answer matches
+                if (Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())) {
+                    user.setPasswordHash(passwordEncoder.encode(forgetPasswordRequestDTO.getNewpassword())); // Encode the new password
 
-                userServiceImp.updateUser(user.getUserid(), user); // Update user with the new password
+                    userServiceImp.updateUser(user.getUserid(), user); // Update user with the new password
 
-                Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("message", "Password successfully changed");
-                responseBody.put("status", HttpStatus.OK.value());
-                return ResponseEntity.ok(responseBody);
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("message", "Password successfully changed");
+                    responseBody.put("status", HttpStatus.OK.value());
+                    return ResponseEntity.ok(responseBody);
+                } else {
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("message", "Security question answered incorrectly");
+                    responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+                }
             } else {
                 Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("message", "Security question answered incorrectly");
-                responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+                responseBody.put("message", "User not found");
+                responseBody.put("status", HttpStatus.NOT_FOUND.value());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
             }
-        } else {
+        } catch (Exception e) {
+            log.error("Error during password reset process: {}", e.getMessage());
             Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("message", "User not found");
-            responseBody.put("status", HttpStatus.NOT_FOUND.value());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+            responseBody.put("message", "Internal server error");
+            responseBody.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
         }
     }
-
 }
 
 
