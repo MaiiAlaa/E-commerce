@@ -1,4 +1,5 @@
 package org.example.e_commerce.Controller;
+
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.ProductImages;
 import org.example.e_commerce.Repository.ProductImagesRepository;
@@ -6,7 +7,6 @@ import org.example.e_commerce.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

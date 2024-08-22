@@ -24,20 +24,15 @@ import java.util.stream.Collectors;
 public class ProductService {
     private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
-    private final ProductImagesRepository productImagesRepository;
+    @Autowired
+     ProductRepository productRepository;
+    @Autowired
+     CategoryRepository categoryRepository;
+    @Autowired
+     ProductImagesRepository productImagesRepository;
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository , ProductImagesRepository productImagesRepository) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-        this.productImagesRepository = productImagesRepository;
-    }
-
     public Product convertToEntity(ProductRequestDTO productDTO) {
         return modelMapper.map(productDTO, Product.class);
     }
@@ -109,9 +104,7 @@ public class ProductService {
                     productImagesRepository.save(productImage);
                 }
             }
-            responseDTO.setMessage("Product updated");
-            responseDTO.setStatusCode(0);
-            return responseDTO;
+
         }
 
         responseDTO.setMessage("Product didn't Exist. Please Add Product");
