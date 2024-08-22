@@ -33,16 +33,16 @@ public class UserController {
     public ResponseEntity<SignUpResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
         SignUpResponseDTO response = new SignUpResponseDTO();
 
-        // Check for validation errors
-        if (bindingResult.hasErrors()) {
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                response.setMessage(error.getDefaultMessage());
-                response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for validation error
-            }
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-
         try {
+            // Check for validation errors
+            if (bindingResult.hasErrors()) {
+                for (FieldError error : bindingResult.getFieldErrors()) {
+                    response.setMessage(error.getDefaultMessage());
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for validation error
+                }
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
+
             if (userServiceImp.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
                 response.setMessage("Username already exists");
                 response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for username conflict
@@ -69,7 +69,6 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         }
-
         catch (HttpMessageNotReadableException e) {
                 // Handle invalid JSON format error
                 response.setMessage("Invalid JSON format");
