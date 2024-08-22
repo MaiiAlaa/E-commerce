@@ -34,27 +34,26 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category) {
-        CategoryResponseDTO response = categoryService.createCategory(category);
+    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category, @RequestHeader("Authorization") String token) {
+        CategoryResponseDTO response = categoryService.createCategory(category,token);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        CategoryResponseDTO response = categoryService.updateCategory(id, category);
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestHeader("Authorization") String token,@PathVariable Long id, @RequestBody Category category) {
+        CategoryResponseDTO response = categoryService.updateCategory(id, category,token);
         if (response.getCategory() == null) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> deleteCategory(@PathVariable Long id) {
-        CategoryResponseDTO response = categoryService.deleteCategory(id);
+    public ResponseEntity<CategoryResponseDTO> deleteCategory(@RequestHeader("Authorization") String token,@PathVariable Long id) {
+        CategoryResponseDTO response = categoryService.deleteCategory(id,token);
         if (response.getMessage().contains("not found")) {
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }

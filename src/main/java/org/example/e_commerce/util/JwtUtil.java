@@ -25,9 +25,10 @@ public class JwtUtil {
     }
 
     // Generate JWT token
-    public String generateToken(Long userId, String username) {
+    public String generateToken(Long userId, String username , String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", username); // Add username to claims
+        claims.put("username", username);
+        claims.put("role" , role ) ;
         return createToken(claims, userId);
     }
 
@@ -56,6 +57,12 @@ public class JwtUtil {
     public String extractUsername(String token) {
         return extractClaim(token, claims -> claims.get("username", String.class));
     }
+
+    // Extract role from JWT token
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
 
     // Extract a claim from JWT token
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
