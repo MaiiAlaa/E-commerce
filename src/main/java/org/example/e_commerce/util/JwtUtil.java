@@ -26,6 +26,11 @@ public class JwtUtil {
 
     // Generate JWT token
     public String generateToken(Long userId, String username , String role) {
+
+        if (role == null || role.isEmpty()) {
+            throw new IllegalArgumentException("Role cannot be null or empty");
+        }
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", username);
         claims.put("role" , role ) ;
@@ -71,10 +76,18 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        // Use the Key object instead of a String for the signing key
-        JwtParser jwtParser = Jwts.parser().setSigningKey(getSigningKey()).build();
         try {
-            return jwtParser.parseClaimsJws(token).getBody();
+            return Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new IllegalArgumentException("JWT token has expired", e);
+        } catch (UnsupportedJwtException e) {
+            throw new IllegalArgumentException("Unsupported JWT token", e);
+        } catch (MalformedJwtException e) {
+            throw new IllegalArgumentException("Malformed JWT token", e);
         } catch (JwtException e) {
             throw new IllegalArgumentException("Invalid JWT token", e);
         }
