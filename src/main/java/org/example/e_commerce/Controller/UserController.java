@@ -1,8 +1,11 @@
 package org.example.e_commerce.Controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.e_commerce.Entity.User;
+import org.example.e_commerce.Repository.UserRepository;
 import org.example.e_commerce.Service.UserServiceImp;
+import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.SignInResponseDTO;
@@ -16,18 +19,16 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@Slf4j
 public class UserController {
 
     @Autowired
     private UserServiceImp userServiceImp;
-
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -122,6 +123,8 @@ public class UserController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+
+            log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -136,4 +139,15 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/changepass")
+    public ResponseEntity<SignUpResponseDTO> changePassword(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
+        SignUpResponseDTO response = userServiceImp.changePassword(signInRequestDTO);
+
+        if (response.getStatusCode() != 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
 }
