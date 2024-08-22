@@ -9,6 +9,7 @@ import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,9 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
     public ResponseEntity<Map<String, String>> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
@@ -140,40 +144,34 @@ public class UserController {
     }
 
     @PostMapping("/forgetpassword")
-    public ResponseEntity<Map<String, Object>> ForgetPassword(@RequestBody ForgetPasswordRequestDTO forgetPasswordRequestDTO) {
+    public ResponseEntity<Map<String, Object>> forgetPassword(@RequestBody ForgetPasswordRequestDTO forgetPasswordRequestDTO) {
+        Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
 
-            Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
-            if (userOpt.isPresent()) {
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
 
-                User user = userOpt.get();
-                if(Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())){
-                    Map<String, Object> responseBody = new HashMap<>();
-                    Map<String, Object> message = new HashMap<>();
-                    Map<String, Object> status = new HashMap<>();
-                    user.setPasswordHash(forgetPasswordRequestDTO.getNewpassword());
-                    message.put("message", "password successfully changed");
-                    status.put("statusCode", HttpStatus.OK.value());
-                    responseBody.put("message",message);
-                    responseBody.put("status",status);
-                   return ResponseEntity.ok(responseBody);
-                }
+            // Check if the provided security question answer matches
+            if (Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())) {
+                user.setPasswordHash(passwordEncoder.encode(forgetPasswordRequestDTO.getNewpassword())); // Encode the new password
+
+                userServiceImp.updateUser(user.getUserid(), user); // Update user with the new password
+
                 Map<String, Object> responseBody = new HashMap<>();
-                Map<String, Object> message = new HashMap<>();
-                Map<String, Object> status = new HashMap<>();
-                message.put("message", "security question answered incorrectly");
-                status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
-                responseBody.put("message",message);
-                responseBody.put("status",status);
+                responseBody.put("message", "Password successfully changed");
+                responseBody.put("status", HttpStatus.OK.value());
+                return ResponseEntity.ok(responseBody);
+            } else {
+                Map<String, Object> responseBody = new HashMap<>();
+                responseBody.put("message", "Security question answered incorrectly");
+                responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
             }
-        Map<String, Object> responseBody = new HashMap<>();
-        Map<String, Object> status = new HashMap<>();
-        status.put("description", "Login Failed");
-        status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
-
-        responseBody.put("status", status);
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+        } else {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "User not found");
+            responseBody.put("status", HttpStatus.NOT_FOUND.value());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+        }
     }
 
 }
