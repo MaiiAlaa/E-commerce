@@ -49,21 +49,21 @@ public class ProductService {
                 || productDTO.getMainImageUrl() == null )
         {
             responseDTO.setMessage("Fill the data ");
-            responseDTO.setStatusCode(-1L);
+            responseDTO.setStatusCode(-1);
             return responseDTO;
         }
 
         Product productExist = productRepository.findByProductName(productDTO.getProductName());
         if (productExist != null) {
             responseDTO.setMessage("Product Already Exists. Update if you want");
-            responseDTO.setStatusCode(-2L);
+            responseDTO.setStatusCode(-2);
             return responseDTO;
         }
 
         Category category = categoryRepository.findById(productDTO.getCategoryID()).orElse(null);
         if (category == null) {
             responseDTO.setMessage("Category not found with id: " + productDTO.getCategoryID());
-            responseDTO.setStatusCode(-3L);
+            responseDTO.setStatusCode(-3);
             return responseDTO;
         }
 
@@ -79,7 +79,7 @@ public class ProductService {
             }
         }
         responseDTO.setMessage("Added Successfully");
-        responseDTO.setStatusCode(0L);
+        responseDTO.setStatusCode(0);
         return responseDTO;
     }
 
@@ -89,7 +89,7 @@ public class ProductService {
             Category category = categoryRepository.findById(productDTO.getCategoryID()).orElse(null);
             if (category == null) {
                 responseDTO.setMessage("Category not found with id: " + productDTO.getCategoryID());
-                responseDTO.setStatusCode(-3L);
+                responseDTO.setStatusCode(-3);
                 return responseDTO;
             }
 
@@ -110,12 +110,12 @@ public class ProductService {
                 }
             }
             responseDTO.setMessage("Product updated");
-            responseDTO.setStatusCode(0L);
+            responseDTO.setStatusCode(0);
             return responseDTO;
         }
 
         responseDTO.setMessage("Product didn't Exist. Please Add Product");
-        responseDTO.setStatusCode(-4L);
+        responseDTO.setStatusCode(-4);
         return responseDTO;
     }
 

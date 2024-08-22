@@ -6,10 +6,12 @@ import org.example.e_commerce.Service.UserServiceImp;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.SignInResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -30,27 +32,33 @@ public class UserController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, String>> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<SignUpResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
+        SignUpResponseDTO response = new SignUpResponseDTO();
 
-        // Check if there are validation errors
+        // Check for validation errors
         if (bindingResult.hasErrors()) {
             for (FieldError error : bindingResult.getFieldErrors()) {
-                response.put("message", error.getDefaultMessage());
+                response.setMessage(error.getDefaultMessage());
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        // Check if the user already exists
+        // Check if the username already exists
         if (userServiceImp.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
-            response.put("message", "Username already exists");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } else if (userServiceImp.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
-            response.put("message", "Email already exists");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            response.setMessage("Username already exists");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        // Convert DTO to Entity
+        // Check if the email already exists
+        if (userServiceImp.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
+            response.setMessage("Email already exists");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        // Create new user and save to the database
         User user = new User();
         user.setFirstName(signUpRequestDTO.getFirstname());
         user.setLastName(signUpRequestDTO.getLastname());
@@ -60,9 +68,31 @@ public class UserController {
         user.setRole("USER");
         userServiceImp.saveUser(user);
 
-        response.put("message", "User registered successfully");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        // Return success response
+        response.setMessage("User registered successfully");
+        response.setStatusCode(HttpStatus.CREATED.value());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    // Handle HttpMessageNotReadableException
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<SignUpResponseDTO> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        SignUpResponseDTO response = new SignUpResponseDTO();
+        response.setMessage("Invalid JSON format");
+        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle general exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<SignUpResponseDTO> handleGeneralException(Exception ex) {
+        SignUpResponseDTO response = new SignUpResponseDTO();
+        response.setMessage("An unexpected error occurred. Please try again later.");
+        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        ex.printStackTrace(); // Optional: Log the stack trace for debugging
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @PostMapping("/signin")
     public ResponseEntity<SignInResponseDTO> signIn(@RequestBody SignInRequestDTO signInRequestDTO) {
