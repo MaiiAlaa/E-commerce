@@ -33,11 +33,10 @@ public class UserController {
         SignUpResponseDTO response = new SignUpResponseDTO();
 
         // Check for validation errors
-        if (bindingResult.hasErrors())
-        {
-            for (FieldError error : bindingResult.getFieldErrors())
-            {
+        if (bindingResult.hasErrors()) {
+            for (FieldError error : bindingResult.getFieldErrors()) {
                 response.setMessage(error.getDefaultMessage());
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for validation error
             }
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -45,11 +44,13 @@ public class UserController {
         try {
             if (userServiceImp.getUserByUsername(signUpRequestDTO.getUsername()).isPresent()) {
                 response.setMessage("Username already exists");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for username conflict
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
             // Check if the email already exists
             else if (userServiceImp.getUserByEmail(signUpRequestDTO.getEmail()).isPresent()) {
                 response.setMessage("Email already exists");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());  // Set status code for email conflict
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
@@ -63,11 +64,13 @@ public class UserController {
             userServiceImp.saveUser(user);
 
             response.setMessage("User registered successfully");
+            response.setStatusCode(HttpStatus.CREATED.value());  // Set status code for successful registration
             return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         } catch (Exception e) {
             e.printStackTrace();
             response.setMessage("An unexpected error occurred. Please try again later.");
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());  // Set status code for server error
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

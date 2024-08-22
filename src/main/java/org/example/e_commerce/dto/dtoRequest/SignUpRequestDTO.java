@@ -29,9 +29,10 @@ public class SignUpRequestDTO {
 
     @NotNull(message = "Username is mandatory")
     @NotBlank(message = "Username is mandatory")
+    @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters")
     @Pattern(
-            regexp = "^[a-zA-Z0-9_]+$",
-            message = "Username can contain only alphanumeric characters and underscores"
+            regexp = "^(?=.*[a-zA-Z]).+$",
+            message = "Username must contain at least one letter"
     )
     private String username;
 
