@@ -149,6 +149,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -210,12 +211,25 @@ public class CartService {
             return responseDTO;
         }
 
-        CartDetails cartDetails = new CartDetails();
-        cartDetails.setCart(cart);
-        cartDetails.setProduct(product);
-        cartDetails.setQuantity(productRequestDTO.getQuantity());
-        cartDetails.setAmount(product.getPrice() * productRequestDTO.getQuantity());
+        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+        CartDetails cartDetails;
+
+        if (existingCartDetails.isPresent()) {
+            cartDetails = existingCartDetails.get();
+            cartDetails.setQuantity(cartDetails.getQuantity() + productRequestDTO.getQuantity());
+            cartDetails.setAmount(cartDetails.getAmount() + product.getPrice() * productRequestDTO.getQuantity());
+        } else {
+            cartDetails = new CartDetails();
+            cartDetails.setCart(cart);
+            cartDetails.setProduct(product);
+            cartDetails.setQuantity(productRequestDTO.getQuantity());
+            cartDetails.setAmount(product.getPrice() * productRequestDTO.getQuantity());
+        }
+
         cartDetailsRepo.save(cartDetails);
+
+        product.setStockQuantity(product.getStockQuantity() - productRequestDTO.getQuantity());
+        productRepo.save(product);
 
         responseDTO.setMessage("Products Added To Cart");
         responseDTO.setStatusCode(0);
@@ -230,11 +244,8 @@ public class CartService {
 
             double totalAmount = 0.0;
             for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
-                Optional<Product> optionalProduct = productRepo.findById(productRequest.getProductId());
-                if (!optionalProduct.isPresent()) {
-                    continue;
-                }
-                Product product = optionalProduct.get();
+                Product product = productRepo.findById(productRequest.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
 
                 if (product.getStockQuantity() < productRequest.getQuantity()) {
                     return new SignUpResponseDTO("Insufficient stock for product: " + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
@@ -243,12 +254,21 @@ public class CartService {
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
 
-                CartDetails cartDetails = new CartDetails();
-                cartDetails.setCart(cart);
-                cartDetails.setProduct(product);
-                cartDetails.setQuantity(productRequest.getQuantity());
-                cartDetails.setAmount(amount);
-                cartDetailsRepo.save(cartDetails);
+                Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+                CartDetails cartDetails;
+
+                if (existingCartDetails.isPresent()) {
+                    cartDetails = existingCartDetails.get();
+                    cartDetails.setQuantity(cartDetails.getQuantity() + productRequest.getQuantity());
+                    cartDetails.setAmount(cartDetails.getAmount() + amount);
+                } else {
+                    cartDetails = new CartDetails();
+                    cartDetails.setCart(cart);
+                    cartDetails.setProduct(product);
+                    cartDetails.setQuantity(productRequest.getQuantity());
+                    cartDetails.setAmount(amount);
+                    cartDetailsRepo.save(cartDetails);
+                }
 
                 product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
                 productRepo.save(product);
@@ -257,14 +277,17 @@ public class CartService {
             String invoiceNumber = "INV-" + System.currentTimeMillis();
             LocalDateTime date = LocalDateTime.now();
 
-            Transaction transaction = new Transaction();
-            transaction.setCartDetails(cartDetailsRepo.findByCart(cart)); // Make sure this method is correct
-            transaction.setInvoiceNumber(invoiceNumber);
-            transaction.setDate(date);
-            transaction.setOrderDescription("Purchase for user " + request.getUserId());
-            transaction.setQuantity(request.getProducts().stream().mapToInt(PurchaseRequestDTO.ProductRequestDTO::getQuantity).sum());
-            transaction.setAmount(totalAmount);
-            transactionRepo.save(transaction);
+            List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
+            for (CartDetails cartDetails : cartDetailsList) {
+                Transaction transaction = new Transaction();
+                transaction.setCartDetails(cartDetails);
+                transaction.setInvoiceNumber(invoiceNumber);
+                transaction.setDate(date);
+                transaction.setOrderDescription("Purchase for user " + request.getUserId());
+                transaction.setQuantity(cartDetails.getQuantity());
+                transaction.setAmount(cartDetails.getAmount());
+                transactionRepo.save(transaction);
+            }
 
             return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, HttpStatus.OK.value());
         } catch (RuntimeException e) {

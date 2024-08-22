@@ -15,4 +15,3 @@ public class PurchaseRequestDTO {
         private int quantity;
     }
 }
-

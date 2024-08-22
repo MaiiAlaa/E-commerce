@@ -15,13 +15,14 @@ public class CartController {
     private CartService cartService;
 
     @PostMapping("/add")
-    public SignUpResponseDTO AddToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequest) {
-        return cartService.AddToCart(token, productRequest);
+    public ResponseEntity<SignUpResponseDTO> AddToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequest) {
+        SignUpResponseDTO response = cartService.AddToCart(token, productRequest);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/purchase")
     public ResponseEntity<SignUpResponseDTO> purchase(@RequestBody PurchaseRequestDTO request) {
         SignUpResponseDTO response = cartService.purchase(request);
-        return ResponseEntity.status(Math.toIntExact(response.getStatusCode())).body(response);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
