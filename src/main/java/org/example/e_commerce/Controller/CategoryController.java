@@ -18,13 +18,13 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         return new ResponseEntity<>(categoryService.getAllCategories(), HttpStatus.OK);
     }
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
         CategoryResponseDTO response = categoryService.getCategoryById(id);
@@ -34,14 +34,14 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category) {
         CategoryResponseDTO response = categoryService.createCategory(category);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         CategoryResponseDTO response = categoryService.updateCategory(id, category);
@@ -51,7 +51,7 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @DeleteMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> deleteCategory(@PathVariable Long id) {
         CategoryResponseDTO response = categoryService.deleteCategory(id);

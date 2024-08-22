@@ -2,6 +2,7 @@ package org.example.e_commerce.Controller;
 import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Service.UserServiceImp;
+import org.example.e_commerce.dto.dtoRequest.ForgetPasswordRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
 import org.example.e_commerce.util.JwtUtil;
@@ -11,10 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -57,6 +56,7 @@ public class UserController {
         user.setEmail(signUpRequestDTO.getEmail());
         user.setPasswordHash(signUpRequestDTO.getPassword());
         user.setRole("USER");
+        user.setSecurityquestion(signUpRequestDTO.getSecurityquestion());
         userServiceImp.saveUser(user);
         response.put("message", "User registered successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -128,7 +128,6 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         try {
@@ -139,4 +138,44 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/forgetpassword")
+    public ResponseEntity<Map<String, Object>> ForgetPassword(@RequestBody ForgetPasswordRequestDTO forgetPasswordRequestDTO) {
+
+            Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
+            if (userOpt.isPresent()) {
+
+                User user = userOpt.get();
+                if(Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())){
+                    Map<String, Object> responseBody = new HashMap<>();
+                    Map<String, Object> message = new HashMap<>();
+                    Map<String, Object> status = new HashMap<>();
+                    user.setPasswordHash(forgetPasswordRequestDTO.getNewpassword());
+                    message.put("message", "password successfully changed");
+                    status.put("statusCode", HttpStatus.OK.value());
+                    responseBody.put("message",message);
+                    responseBody.put("status",status);
+                   return ResponseEntity.ok(responseBody);
+                }
+                Map<String, Object> responseBody = new HashMap<>();
+                Map<String, Object> message = new HashMap<>();
+                Map<String, Object> status = new HashMap<>();
+                message.put("message", "security question answered incorrectly");
+                status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+                responseBody.put("message",message);
+                responseBody.put("status",status);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+            }
+        Map<String, Object> responseBody = new HashMap<>();
+        Map<String, Object> status = new HashMap<>();
+        status.put("description", "Login Failed");
+        status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+
+        responseBody.put("status", status);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+    }
+
 }
+
+

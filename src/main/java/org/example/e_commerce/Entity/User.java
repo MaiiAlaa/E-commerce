@@ -40,6 +40,10 @@ public class User {
     @Column(name = "role")
     private String role;  // Default role value
 
+    @NotBlank(message = "Question must be answered")
+    @Column(name = "securityquestion")
+    private String securityquestion;
+
 
     @PrePersist
     protected void onCreate() {

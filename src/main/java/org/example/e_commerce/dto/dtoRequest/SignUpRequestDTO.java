@@ -38,6 +38,8 @@ public class SignUpRequestDTO {
     )
     private String password;
 
+    private String securityquestion;
+
     public void setFirstname(String firstname) {
         this.firstname = firstname;
     }
