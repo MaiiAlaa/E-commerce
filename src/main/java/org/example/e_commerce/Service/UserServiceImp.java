@@ -50,14 +50,18 @@ public class UserServiceImp implements UserService {
     public User updateUser(long userid, User user) {
         if (userRepository.existsById(userid)) {
             user.setUserid(userid);
-            if (user.getPasswordHash() != null) {
+
+            // Avoid double encoding the password
+            if (user.getPasswordHash() != null && !user.getPasswordHash().startsWith("$2a$")) {
                 user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             }
+
             return userRepository.save(user);
         } else {
             throw new RuntimeException("User not found with ID: " + userid);
         }
     }
+
 
     @Override
     public void deleteUser(long userid) {

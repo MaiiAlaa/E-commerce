@@ -18,13 +18,13 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         return new ResponseEntity<>(categoryService.getAllCategories(), HttpStatus.OK);
     }
 
-    @PreAuthorize("isAuthenticated()")
+
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
         CategoryResponseDTO response = categoryService.getCategoryById(id);
@@ -34,6 +34,7 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category, @RequestHeader("Authorization") String token) {
         CategoryResponseDTO response = categoryService.createCategory(category, token);
@@ -41,12 +42,14 @@ public class CategoryController {
         return new ResponseEntity<>(response, status);
     }
 
+
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody Category category) {
         CategoryResponseDTO response = categoryService.updateCategory(id, category, token);
         HttpStatus status = determineHttpStatus(response);
         return new ResponseEntity<>(response, status);
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> deleteCategory(@RequestHeader("Authorization") String token, @PathVariable Long id) {
