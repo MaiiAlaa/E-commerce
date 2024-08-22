@@ -152,13 +152,10 @@ public class UserController {
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-
                 // Check if the provided security question answer matches
                 if (Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())) {
                     user.setPasswordHash(passwordEncoder.encode(forgetPasswordRequestDTO.getNewpassword())); // Encode the new password
-
                     userServiceImp.updateUser(user.getUserid(), user); // Update user with the new password
-
                     Map<String, Object> responseBody = new HashMap<>();
                     responseBody.put("message", "Password successfully changed");
                     responseBody.put("status", HttpStatus.OK.value());
