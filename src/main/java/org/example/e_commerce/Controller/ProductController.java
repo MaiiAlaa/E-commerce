@@ -4,15 +4,12 @@ import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

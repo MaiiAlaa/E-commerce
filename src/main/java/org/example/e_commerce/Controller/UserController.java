@@ -1,8 +1,12 @@
 package org.example.e_commerce.Controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.example.e_commerce.Entity.User;
+import org.example.e_commerce.Repository.UserRepository;
 import org.example.e_commerce.Service.UserServiceImp;
+import org.example.e_commerce.dto.dtoRequest.ForgetPasswordRequestDTO;
+import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.SignInResponseDTO;
@@ -11,25 +15,29 @@ import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.*;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@Slf4j
 public class UserController {
 
     @Autowired
     private UserServiceImp userServiceImp;
-
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO, BindingResult bindingResult) {
@@ -66,6 +74,7 @@ public class UserController {
         user.setEmail(signUpRequestDTO.getEmail());
         user.setPasswordHash(signUpRequestDTO.getPassword());
         user.setRole("USER");
+        user.setSecurityquestion(signUpRequestDTO.getSecurityquestion());
         userServiceImp.saveUser(user);
 
         // Return success response
@@ -122,10 +131,11 @@ public class UserController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+
+            log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         try {
@@ -136,4 +146,55 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/forgetpassword")
+    public ResponseEntity<Map<String, Object>> forgetPassword(@RequestBody ForgetPasswordRequestDTO forgetPasswordRequestDTO) {
+        try {
+            Optional<User> userOpt = userServiceImp.getUserByUsername(forgetPasswordRequestDTO.getUsername());
+
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                // Check if the provided security question answer matches
+                if (Objects.equals(user.getSecurityquestion(), forgetPasswordRequestDTO.getSecurityquestion())) {
+                    user.setPasswordHash(passwordEncoder.encode(forgetPasswordRequestDTO.getNewpassword())); // Encode the new password
+                    userServiceImp.updateUser(user.getUserid(), user); // Update user with the new password
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("message", "Password successfully changed");
+                    responseBody.put("status", HttpStatus.OK.value());
+                    return ResponseEntity.ok(responseBody);
+                } else {
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("message", "Security question answered incorrectly");
+                    responseBody.put("status", HttpStatus.UNAUTHORIZED.value());
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+                }
+            } else {
+                Map<String, Object> responseBody = new HashMap<>();
+                responseBody.put("message", "User not found");
+                responseBody.put("status", HttpStatus.NOT_FOUND.value());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
+            }
+        } catch (Exception e) {
+            log.error("Error during password reset process: {}", e.getMessage());
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Internal server error");
+            responseBody.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseBody);
+        }
+    }
+
+
+
+
+
+    @PostMapping("/changepass")
+    public ResponseEntity<SignUpResponseDTO> changePassword(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
+        SignUpResponseDTO response = userServiceImp.changePassword(signInRequestDTO);
+
+        if (response.getStatusCode() != 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
 }

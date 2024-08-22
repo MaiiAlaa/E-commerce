@@ -1,10 +1,12 @@
 package org.example.e_commerce.Controller;
+
 import org.example.e_commerce.Entity.Product;
+import org.example.e_commerce.Entity.ProductImages;
+import org.example.e_commerce.Repository.ProductImagesRepository;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +17,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/files")
@@ -96,4 +101,60 @@ public class FileUploadController {
         }
     }
 
+    @Autowired
+    private ProductImagesRepository productImageRepository;
+    @PostMapping("/upload-images")
+    public ResponseEntity<String> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files, @RequestParam("productId") Long productId) {
+        try {
+            Optional<Product> productOpt = productRepository.findById(productId);
+            if (!productOpt.isPresent()) {
+                return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
+            }
+
+            Product product = productOpt.get();
+            for (MultipartFile file : files) {
+                String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+                Files.copy(file.getInputStream(), path);
+
+                ProductImages productImage = new ProductImages();
+                productImage.setProduct(product);
+                productImage.setImageUrl(path.toString());
+
+                productImageRepository.save(productImage);
+            }
+
+            return new ResponseEntity<>("Files uploaded successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/images/{productId}")
+    public ResponseEntity<List<String>> getImageUrls(@PathVariable Long productId) {
+        Optional<Product> productOpt = productRepository.findById(productId);
+        if (productOpt.isPresent()) {
+            List<ProductImages> productImages = productImageRepository.findAllByProduct_ProductId(productId);
+
+            List<String> imageUrls = productImages.stream()
+                    .map(ProductImages::getImageUrl)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(imageUrls);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/delete-image/{imageId}")
+    public ResponseEntity<String> deleteImageById(@PathVariable Long imageId) {
+        Optional<ProductImages> productImageOpt = productImageRepository.findById(imageId);
+
+        if (productImageOpt.isPresent()) {
+            productImageRepository.delete(productImageOpt.get());
+            return ResponseEntity.ok("Image successfully deleted.");
+        } else {
+            return new ResponseEntity<>("Image ID not found", HttpStatus.NOT_FOUND);
+        }
+    }
 }

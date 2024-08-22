@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF protection
                 .authorizeHttpRequests(authorizeRequests -> {
                     authorizeRequests
-                            .requestMatchers("/api/auth/signin", "/api/auth/signup").permitAll() // Allow access without token
+                            .requestMatchers("/api/auth/signin", "/api/auth/signup","/api/auth/forgetpassword").permitAll() // Allow access without token
                             .requestMatchers("/api/favorites/**").authenticated() // Require authentication for favorites
                             .anyRequest().authenticated(); // Require authentication for all other requests
                 })
@@ -54,3 +54,4 @@ public class SecurityConfig {
     }
 }
 
+//omarzaru627@gmail.com
