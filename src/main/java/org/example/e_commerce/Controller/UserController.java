@@ -1,9 +1,11 @@
 package org.example.e_commerce.Controller;
+
 import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.User;
 import org.example.e_commerce.Service.UserServiceImp;
 import org.example.e_commerce.dto.dtoRequest.SignInRequestDTO;
 import org.example.e_commerce.dto.dtoRequest.SignUpRequestDTO;
+import org.example.e_commerce.dto.dtoResponse.SignInResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +15,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
+
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -24,7 +27,6 @@ public class UserController {
 
     @Autowired
     private UserServiceImp userServiceImp;
-
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -93,56 +95,21 @@ public class UserController {
 
 
     @PostMapping("/signin")
-    public ResponseEntity<Map<String, Object>> SignIn(@RequestBody SignInRequestDTO signInRequestDTO) {
+    public ResponseEntity<SignInResponseDTO> signIn(@RequestBody SignInRequestDTO signInRequestDTO) {
         boolean isAuthenticated = userServiceImp.authenticateUser(signInRequestDTO.getUsername(), signInRequestDTO.getPassword());
 
         if (isAuthenticated) {
             Optional<User> userOpt = userServiceImp.getUserByUsername(signInRequestDTO.getUsername());
             if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                String token = jwtUtil.generateToken(user.getUserid(),user.getUsername());
-
-                Map<String, Object> responseBody = new HashMap<>();
-                Map<String, Object> status = new HashMap<>();
-                status.put("description", "Login Succeeded");
-                status.put("statusCode", HttpStatus.OK.value());
-
-                Map<String, Object> userDetails = new HashMap<>();
-                userDetails.put("firstName", user.getFirstName());
-                userDetails.put("lastName", user.getLastName());
-                userDetails.put("email", user.getEmail());
-                userDetails.put("username", user.getUsername());
-                userDetails.put("role", user.getRole());
-                userDetails.put("token", token);
-
-                responseBody.put("status", status);
-                responseBody.put("userDetails", userDetails);
-
-                return ResponseEntity.ok(responseBody);
+                SignInResponseDTO response = SignInResponseDTO.createSuccessfulSignInResponse(userOpt.get(), jwtUtil);
+                return ResponseEntity.ok(response);
             } else {
-                Map<String, Object> responseBody = new HashMap<>();
-                Map<String, Object> status = new HashMap<>();
-                status.put("description", "User not found");
-                status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
-
-                responseBody.put("status", status);
-
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+                return new ResponseEntity<>(SignInResponseDTO.createFailureResponse("User not found"), HttpStatus.UNAUTHORIZED);
             }
         } else {
-            Map<String, Object> responseBody = new HashMap<>();
-            Map<String, Object> status = new HashMap<>();
-            status.put("description", "Login Failed");
-            status.put("statusCode", HttpStatus.UNAUTHORIZED.value());
-
-            responseBody.put("status", status);
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseBody);
+            return new ResponseEntity<>(SignInResponseDTO.createFailureResponse("Login Failed"), HttpStatus.UNAUTHORIZED);
         }
     }
-
-
-
 
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
