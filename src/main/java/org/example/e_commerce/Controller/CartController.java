@@ -7,26 +7,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/api/cart")
 public class CartController {
 
     @Autowired
     private CartService cartService;
 
     @PostMapping("/add")
-    public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token,
-                                                       @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
-        String jwtToken = token.substring(7);
-        SignUpResponseDTO responseDTO = cartService.AddToCart(jwtToken, productRequestDTO);
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+    public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequest) {
+        SignUpResponseDTO response = cartService.addToCart(token, productRequest);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/purchase")
-    public ResponseEntity<SignUpResponseDTO> purchase(@RequestBody PurchaseRequestDTO purchaseRequestDTO) {
-        SignUpResponseDTO responseDTO = cartService.purchase(purchaseRequestDTO);
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+    public ResponseEntity<SignUpResponseDTO> purchase(@RequestBody PurchaseRequestDTO request) {
+        SignUpResponseDTO response = cartService.purchase(request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
+
 

@@ -28,9 +28,9 @@ package org.example.e_commerce.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 @Entity
 @Table(name = "cartdetails")
+@Data
 public class CartDetails {
 
     @Id
@@ -51,46 +51,4 @@ public class CartDetails {
 
     @Column(name = "amount")
     private double amount;
-
-    // Getters and Setters
-    public Long getCartDetailsId() {
-        return cartDetailsId;
-    }
-
-    public void setCartDetailsId(Long cartDetailsId) {
-        this.cartDetailsId = cartDetailsId;
-    }
-
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
 }
-
