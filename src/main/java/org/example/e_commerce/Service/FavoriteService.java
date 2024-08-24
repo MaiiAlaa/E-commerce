@@ -64,7 +64,7 @@ public class FavoriteService {
         // Validate input data
         if (userId == null || favoriteRequestDTO.getProduct_id() == null || favoriteRequestDTO.getCategory_id() == null) {
             signUpResponseDTO.setMessage("Please fill missing data");
-            signUpResponseDTO.setStatusCode((long) -1);
+            signUpResponseDTO.setStatusCode(-1);
             return signUpResponseDTO;
         }
 
@@ -72,7 +72,7 @@ public class FavoriteService {
         Optional<Favorite> favoriteExist = favoriteRepository.findById(userId);
         if (favoriteExist.isPresent()) {
             signUpResponseDTO.setMessage("Favorite already exists");
-            signUpResponseDTO.setStatusCode((long) -2);
+            signUpResponseDTO.setStatusCode(-2);
             return signUpResponseDTO;
         }
 
@@ -80,7 +80,7 @@ public class FavoriteService {
         Optional<User> userExist = userRepository.findById(userId);
         if (userExist.isEmpty()) {
             signUpResponseDTO.setMessage("Selected User doesn't exist");
-            signUpResponseDTO.setStatusCode((long) -3);
+            signUpResponseDTO.setStatusCode(-3);
             return signUpResponseDTO;
         }
 
@@ -88,7 +88,7 @@ public class FavoriteService {
         Optional<Product> productExist = productRepository.findById(favoriteRequestDTO.getProduct_id());
         if (productExist.isEmpty()) {
             signUpResponseDTO.setMessage("Selected Product doesn't exist");
-            signUpResponseDTO.setStatusCode((long) -4);
+            signUpResponseDTO.setStatusCode(-4);
             return signUpResponseDTO;
         }
 
@@ -96,7 +96,7 @@ public class FavoriteService {
         Optional<Category> categoryExist = categoryRepository.findById(favoriteRequestDTO.getCategory_id());
         if (categoryExist.isEmpty()) {
             signUpResponseDTO.setMessage("Selected Category doesn't exist");
-            signUpResponseDTO.setStatusCode((long) -5);
+            signUpResponseDTO.setStatusCode(-5);
             return signUpResponseDTO;
         }
 
@@ -108,7 +108,7 @@ public class FavoriteService {
 
         // Set successful response
         signUpResponseDTO.setMessage("Favorite added successfully");
-        signUpResponseDTO.setStatusCode(0L);
+        signUpResponseDTO.setStatusCode(0);
         return signUpResponseDTO;
     }
 
