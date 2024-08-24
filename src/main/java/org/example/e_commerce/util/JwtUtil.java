@@ -5,7 +5,6 @@
 //import io.jsonwebtoken.security.Keys;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.stereotype.Component;
-//
 //import java.security.Key;
 //import java.util.Date;
 //import java.util.HashMap;
@@ -135,9 +134,9 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // Extract a claim (like username) from JWT token
+    // Extract username from JWT token
     public String extractUsername(String token) {
-        return extractClaim(token, claims -> claims.get("username", String.class));
+        return extractClaim(stripBearerPrefix(token), claims -> claims.get("username", String.class));
     }
 
     // Extract a claim from JWT token
@@ -147,7 +146,6 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        token = token.trim(); // Ensure no leading or trailing whitespace
         JwtParser jwtParser = Jwts.parser().setSigningKey(getSigningKey()).build();
         try {
             return jwtParser.parseClaimsJws(token).getBody();
@@ -162,5 +160,13 @@ public class JwtUtil {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Helper method to strip the "Bearer " prefix from the token
+    private String stripBearerPrefix(String token) {
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
     }
 }
