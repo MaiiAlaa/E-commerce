@@ -17,7 +17,7 @@ public class SignInResponseDTO {
     }
 
     public static SignInResponseDTO createSuccessfulSignInResponse(User user, JwtUtil jwtUtil) {
-        String token = jwtUtil.generateToken(user.getUserid(), user.getUsername());
+        String token = jwtUtil.generateToken(user.getUserid(),user.getUsername(),user.getRole());
 
         Map<String, Object> userDetails = new HashMap<>();
         userDetails.put("firstName", user.getFirstName());
