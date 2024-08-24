@@ -8,14 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignUpResponseDTO {
-
     private String message;
-    private Long statusCode;
-
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-
+    private int statusCode;
 }

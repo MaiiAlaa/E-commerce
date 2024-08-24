@@ -8,15 +8,13 @@ import lombok.Data;
 @Table(name = "cart")
 public class Cart {
 
-
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-   @Id
-    private Long cart_id;
-    private Long userid;
+    @Column(name = "cart_id")
+    private Long cartId;
 
-//    @OneToOne
-//   @JoinColumn(name = "userid", unique = true)
-//    private User user;
+    @Column(name = "userid")
+    private Long userid; // Ensure consistency with the field name
 
-
+    // Add any necessary relationships here
 }

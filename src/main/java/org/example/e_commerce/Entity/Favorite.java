@@ -1,18 +1,20 @@
 package org.example.e_commerce.Entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "favorites")
 public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "favorite_id")
     private Long favoriteId;
 
     @ManyToOne
-    @JoinColumn(name = "userid", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
@@ -22,51 +24,4 @@ public class Favorite {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
-
-
-    public Favorite(User user, Product product, Category category) {
-        this.user = user;
-        this.product = product;
-        this.category = category;
-    }
-
-    public Favorite() {
-
-    }
-
-    // Getters and Setters
-
-    public Long getFavoriteId() {
-        return favoriteId;
-    }
-
-    public void setFavoriteId(Long favoriteId) {
-        this.favoriteId = favoriteId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
 }
-
