@@ -23,11 +23,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
-    private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
     @Autowired
      ProductRepository productRepository;
     @Autowired
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductImagesRepository productImagesRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.productImagesRepository = productImagesRepository;
+    }
+
      CategoryRepository categoryRepository;
     @Autowired
      ProductImagesRepository productImagesRepository;
@@ -40,6 +45,7 @@ public class ProductService {
         return modelMapper.map(productDTO, Product.class);
     }
 
+
     public SignUpResponseDTO addProduct(ProductRequestDTO productDTO, String token) {
         String role = jwtUtil.extractRole(token);
         SignUpResponseDTO responseDTO = new SignUpResponseDTO();
@@ -49,6 +55,7 @@ public class ProductService {
             responseDTO.setStatusCode(403);
             return responseDTO;
         }
+
 
         if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
                 productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
@@ -90,6 +97,7 @@ public class ProductService {
         responseDTO.setStatusCode(0);
         return responseDTO;
     }
+
 
     public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO, String token) {
         String role = jwtUtil.extractRole(token);
@@ -199,8 +207,9 @@ public class ProductService {
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
     }
-    public List<Product>findProductCategoryId(Long categoryId){
-        return productRepository.findProductCategoryId(categoryId);
+
+    public List<Product> findProductByCategoryId(Long categoryId) {
+        return productRepository.findProductByCategoryId(categoryId);
     }
 
     public Map<String, Object> getAllProducts() {
@@ -231,5 +240,4 @@ public class ProductService {
 
         return response;
     }
-
 }

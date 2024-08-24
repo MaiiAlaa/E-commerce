@@ -61,13 +61,14 @@ public class ProductController {
     }
 
     @GetMapping("/by_category/{categoryId}")
-    public ResponseEntity<List<Product>> findProductCategoryId(@PathVariable Long categoryId) {
-        List<Product> products = productService.findProductCategoryId(categoryId);
+    public ResponseEntity<List<Product>> findProductByCategoryId(@PathVariable Long categoryId) {
+        List<Product> products = productService.findProductByCategoryId(categoryId);
         if (products.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(products);
     }
+
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllProducts() {

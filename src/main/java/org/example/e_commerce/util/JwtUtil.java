@@ -91,9 +91,9 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // Extract a claim (like username) from JWT token
+    // Extract username from JWT token
     public String extractUsername(String token) {
-        return extractClaim(token, claims -> claims.get("username", String.class));
+        return extractClaim(stripBearerPrefix(token), claims -> claims.get("username", String.class));
     }
 
     // Extract role from JWT token
@@ -110,15 +110,11 @@ public class JwtUtil {
         return claimsResolver.apply(claims);
     }
 
-    private String stripBearerPrefix(String token) {
-        if (token.startsWith("Bearer ")) {
-            return token.substring(7);
-        }
-        return token;
-    }
-
 
     private Claims extractAllClaims(String token) {
+
+        JwtParser jwtParser = Jwts.parser().setSigningKey(getSigningKey()).build();
+
         try {
             return Jwts.parser()
                     .setSigningKey(getSigningKey())
@@ -142,5 +138,13 @@ public class JwtUtil {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Helper method to strip the "Bearer " prefix from the token
+    private String stripBearerPrefix(String token) {
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
     }
 }
