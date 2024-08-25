@@ -33,6 +33,7 @@ public class UserController {
 
     @Autowired
     private UserServiceImp userServiceImp;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -98,7 +99,6 @@ public class UserController {
         SignUpResponseDTO response = new SignUpResponseDTO();
         response.setMessage("An unexpected error occurred. Please try again later.");
         response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        ex.printStackTrace(); // Optional: Log the stack trace for debugging
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

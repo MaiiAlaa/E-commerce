@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
+import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,8 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getProductById(@PathVariable Long id) {
-        Map<String, Object> response = productService.getProductById(id);
+    public ResponseEntity<ProductsResponseDTO> getProductById(@PathVariable Long id) {
+        ProductsResponseDTO response = productService.getProductById(id);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -62,8 +63,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllProducts() {
-        Map<String, Object> response = productService.getAllProducts();
+    public ResponseEntity<ProductsResponseDTO> getAllProducts() {
+        ProductsResponseDTO response = productService.getAllProducts();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
