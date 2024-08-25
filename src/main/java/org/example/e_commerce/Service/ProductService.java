@@ -11,6 +11,7 @@ import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.example.e_commerce.Repository.CategoryRepository;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
+import org.example.e_commerce.util.JwtUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,14 +21,21 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
-    private SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
     @Autowired
      ProductRepository productRepository;
     @Autowired
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductImagesRepository productImagesRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.productImagesRepository = productImagesRepository;
+    }
+
      CategoryRepository categoryRepository;
     @Autowired
      ProductImagesRepository productImagesRepository;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -35,13 +43,23 @@ public class ProductService {
         return modelMapper.map(productDTO, Product.class);
     }
 
-    public SignUpResponseDTO addProduct(ProductRequestDTO productDTO) {
+
+    public SignUpResponseDTO addProduct(ProductRequestDTO productDTO, String token) {
+        String role = jwtUtil.extractRole(token);
+        SignUpResponseDTO responseDTO = new SignUpResponseDTO();
+
+        if (role.equals("USER")) {
+            responseDTO.setMessage("You do not have the necessary permissions to perform this action.");
+            responseDTO.setStatusCode(403);
+            return responseDTO;
+        }
+
+
         if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
                 productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
-                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null
-                || productDTO.getMainImageUrl() == null )
-        {
-            responseDTO.setMessage("Fill the data ");
+                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null ||
+                productDTO.getMainImageUrl() == null) {
+            responseDTO.setMessage("Fill the data");
             responseDTO.setStatusCode(-1);
             return responseDTO;
         }
@@ -60,9 +78,10 @@ public class ProductService {
             return responseDTO;
         }
 
-        Product productNew = convertToEntity(productDTO);
+        Product productNew = modelMapper.map(productDTO, Product.class);
         productNew.setCategory(category);
         productRepository.save(productNew);
+
         if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
             for (String imageUrl : productDTO.getImageUrls()) {
                 ProductImages productImage = new ProductImages();
@@ -71,46 +90,85 @@ public class ProductService {
                 productImagesRepository.save(productImage);
             }
         }
-        responseDTO.setMessage("Added Successfully");
+
+        responseDTO.setMessage("Product added successfully");
         responseDTO.setStatusCode(0);
         return responseDTO;
     }
 
-    public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO) {
-        Product productExist = productRepository.findByProductName(productDTO.getProductName());
-        if (productExist != null) {
-            Category category = categoryRepository.findById(productDTO.getCategoryID()).orElse(null);
-            if (category == null) {
-                responseDTO.setMessage("Category not found with id: " + productDTO.getCategoryID());
-                responseDTO.setStatusCode(-3);
-                return responseDTO;
-            }
 
-            productExist.setCategory(category);
-            productExist.setPrice(productDTO.getPrice());
-            productExist.setDescription(productDTO.getDescription());
-            productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
-            productExist.setManufacturer(productDTO.getManufacturer());
-            productExist.setStockQuantity(productDTO.getStockQuantity());
+    public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO, String token) {
+        String role = jwtUtil.extractRole(token);
+        SignUpResponseDTO responseDTO = new SignUpResponseDTO();
 
-            productRepository.save(productExist);
-            if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
-                for (String imageUrl : productDTO.getImageUrls()) {
-                    ProductImages productImage = new ProductImages();
-                    productImage.setProduct(productExist);
-                    productImage.setImageUrl(imageUrl);
-                    productImagesRepository.save(productImage);
-                }
-            }
-
+        if (role.equals("USER")) {
+            responseDTO.setMessage("You do not have the necessary permissions to perform this action.");
+            responseDTO.setStatusCode(403);
+            return responseDTO;
         }
 
-        responseDTO.setMessage("Product didn't Exist. Please Add Product");
-        responseDTO.setStatusCode(-4);
+        Product productExist = productRepository.findByProductName(productDTO.getProductName());
+        if (productExist == null) {
+            responseDTO.setMessage("Product didn't exist. Please add product");
+            responseDTO.setStatusCode(-4);
+            return responseDTO;
+        }
+
+        Category category = categoryRepository.findById(productDTO.getCategoryID()).orElse(null);
+        if (category == null) {
+            responseDTO.setMessage("Category not found with id: " + productDTO.getCategoryID());
+            responseDTO.setStatusCode(-3);
+            return responseDTO;
+        }
+
+        productExist.setCategory(category);
+        productExist.setPrice(productDTO.getPrice());
+        productExist.setDescription(productDTO.getDescription());
+        productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
+        productExist.setManufacturer(productDTO.getManufacturer());
+        productExist.setStockQuantity(productDTO.getStockQuantity());
+
+        productRepository.save(productExist);
+
+        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
+            for (String imageUrl : productDTO.getImageUrls()) {
+                ProductImages productImage = new ProductImages();
+                productImage.setProduct(productExist);
+                productImage.setImageUrl(imageUrl);
+                productImagesRepository.save(productImage);
+            }
+        }
+
+        responseDTO.setMessage("Product updated successfully");
+        responseDTO.setStatusCode(0);
         return responseDTO;
     }
 
+    public SignUpResponseDTO deleteProduct(Long id, String token) {
+        String role = jwtUtil.extractRole(token);
+        SignUpResponseDTO responseDTO = new SignUpResponseDTO();
+
+        if (role.equals("USER")) {
+            responseDTO.setMessage("You do not have the necessary permissions to perform this action.");
+            responseDTO.setStatusCode(403);
+            return responseDTO;
+        }
+
+        if (productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+            responseDTO.setMessage("Product deleted successfully");
+            responseDTO.setStatusCode(0);
+        } else {
+            responseDTO.setMessage("Product not found with id: " + id);
+            responseDTO.setStatusCode(-1);
+        }
+
+        return responseDTO;
+    }
+
+  
     public ProductsResponseDTO getProductById(Long id) {
+
         Product product = productRepository.findById(id).orElse(null);
 
         if (product == null) {
@@ -140,8 +198,9 @@ public class ProductService {
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
     }
-    public List<Product>findProductCategoryId(Long categoryId){
-        return productRepository.findProductCategoryId(categoryId);
+
+    public List<Product> findProductByCategoryId(Long categoryId) {
+        return productRepository.findProductByCategoryId(categoryId);
     }
 
     public ProductsResponseDTO getAllProducts() {
@@ -165,5 +224,4 @@ public class ProductService {
 
         return new ProductsResponseDTO(0L, "Products retrieved successfully", productDTOs);
     }
-
 }

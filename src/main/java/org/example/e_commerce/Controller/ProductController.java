@@ -31,36 +31,45 @@ public class ProductController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<SignUpResponseDTO> updateProduct(@Valid @RequestBody ProductRequestDTO productDTO) {
+    @PostMapping("/add")
+    public ResponseEntity<SignUpResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO productDTO, @RequestHeader("Authorization") String token) {
+        SignUpResponseDTO response = productService.addProduct(productDTO, token);
 
-        SignUpResponseDTO response = productService.updateProduct(productDTO);
-
-        if (response.getStatusCode() != 0l) {
+        if (response.getStatusCode() != 0L) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<SignUpResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO  productDTO) {// req body coming from postman
+    @PostMapping("/update")
+    public ResponseEntity<SignUpResponseDTO> updateProduct(@Valid @RequestBody ProductRequestDTO productDTO, @RequestHeader("Authorization") String token) {
+        SignUpResponseDTO response = productService.updateProduct(productDTO, token);
 
-        SignUpResponseDTO response = productService.addProduct(productDTO);
+        if (response.getStatusCode() != 0L) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
 
-        if (response.getStatusCode() != 0l) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<SignUpResponseDTO> deleteProduct(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        SignUpResponseDTO response = productService.deleteProduct(id, token);
+
+        if (response.getStatusCode() != 0L) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/by_category/{categoryId}")
-    public ResponseEntity<List<Product>> findProductCategoryId(@PathVariable Long categoryId) {
-        List<Product> products = productService.findProductCategoryId(categoryId);
+    public ResponseEntity<List<Product>> findProductByCategoryId(@PathVariable Long categoryId) {
+        List<Product> products = productService.findProductByCategoryId(categoryId);
         if (products.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(products);
     }
+
 
     @GetMapping
     public ResponseEntity<ProductsResponseDTO> getAllProducts() {
@@ -72,11 +81,8 @@ public class ProductController {
     public ResponseEntity<List<Product>> searchProducts(@RequestParam String search) {
         List<Product> products = productService.searchProducts(search);
         if (products.isEmpty()) {
-
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(products);
     }
 }
-
-
