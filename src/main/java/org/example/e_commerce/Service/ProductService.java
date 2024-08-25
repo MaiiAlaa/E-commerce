@@ -1,24 +1,22 @@
 package org.example.e_commerce.Service;
 
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.ProductDTO;
+import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.ProductDetailsDTO;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.ProductImages;
 import org.example.e_commerce.Repository.ProductImagesRepository;
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.example.e_commerce.Repository.CategoryRepository;
-import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -168,16 +166,13 @@ public class ProductService {
         return responseDTO;
     }
 
-
-    public Map<String, Object> getProductById(Long id) {
-        Map<String, Object> response = new HashMap<>();
+  
+    public ProductsResponseDTO getProductById(Long id) {
 
         Product product = productRepository.findById(id).orElse(null);
 
         if (product == null) {
-            response.put("statusCode", -1L);
-            response.put("message", "Product not found with id: " + id);
-            return response;
+            return new ProductsResponseDTO(-1L, "Product not found with id: " + id, null);
         }
 
         List<String> imageUrls = productImagesRepository.findAllByProduct_ProductId(product.getProductId())
@@ -185,23 +180,19 @@ public class ProductService {
                 .map(ProductImages::getImageUrl)
                 .collect(Collectors.toList());
 
-        ProductResponseDTO productDTO = new ProductResponseDTO(
+        ProductDetailsDTO productDTO = new ProductDetailsDTO(
                 product.getProductId(),
                 product.getProductName(),
                 product.getPrice(),
                 product.getStockQuantity(),
-                product.getDescription(),
                 product.getCategory().getCategoryid(),
                 product.getCategory().getName(),
                 product.getImageUrl(), // main image
+                product.getDescription(),
                 imageUrls // additional images
         );
 
-        response.put("statusCode", 0L);
-        response.put("message", "Product retrieved successfully");
-        response.put("product", productDTO);
-
-        return response;
+        return new ProductsResponseDTO(0L, "Product retrieved successfully", Collections.singletonList(productDTO));
     }
 
     public List<Product> searchProducts(String searchTerm) {
@@ -212,18 +203,15 @@ public class ProductService {
         return productRepository.findProductByCategoryId(categoryId);
     }
 
-    public Map<String, Object> getAllProducts() {
+    public ProductsResponseDTO getAllProducts() {
         List<Product> products = productRepository.findAll();
-        Map<String, Object> response = new HashMap<>();
 
         if (products.isEmpty()) {
-            response.put("statusCode", -1L);
-            response.put("message", "No products found");
-            return response;
+            return new ProductsResponseDTO(-1L, "No products found", null);
         }
 
-        List<ProductsResponseDTO> productDTOs = products.stream()
-                .map(product -> new ProductsResponseDTO(
+        List<ProductDTO> productDTOs = products.stream()
+                .map(product -> new ProductDTO(
                         product.getProductId(),
                         product.getProductName(),
                         product.getPrice(),
@@ -234,10 +222,6 @@ public class ProductService {
                 ))
                 .collect(Collectors.toList());
 
-        response.put("statusCode", 0L);
-        response.put("message", "Products retrieved successfully");
-        response.put("products", productDTOs);
-
-        return response;
+        return new ProductsResponseDTO(0L, "Products retrieved successfully", productDTOs);
     }
 }
