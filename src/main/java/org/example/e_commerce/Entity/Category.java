@@ -28,4 +28,8 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference  // Allows serialization of products in this list
     private List<Product> products;
+
+    @NotBlank(message = "Category Image is mandatory")
+    @Column(name = "imageUrl")
+    private String image_url;
 }
