@@ -30,13 +30,11 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
         this.productImagesRepository = productImagesRepository;
     }
-
      CategoryRepository categoryRepository;
     @Autowired
      ProductImagesRepository productImagesRepository;
     @Autowired
     private JwtUtil jwtUtil;
-
     @Autowired
     private ModelMapper modelMapper;
     public Product convertToEntity(ProductRequestDTO productDTO) {
