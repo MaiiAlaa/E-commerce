@@ -55,6 +55,8 @@ public class CategoryService {
         }
         if (categoryRepo.existsById(id)) {
             category.setCategoryid(id);
+            category.setImage_url(category.getImage_url());
+
             Category updatedCategory = categoryRepo.save(category);
             return new CategoryResponseDTO("Category updated successfully", 200L, updatedCategory);
         } else {
