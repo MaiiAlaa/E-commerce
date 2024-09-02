@@ -53,15 +53,28 @@ public class CategoryService {
         if (role.equals("USER")){
             return new CategoryResponseDTO("You do not have the necessary permissions to perform this action.", 403L, null);
         }
-        if (categoryRepo.existsById(id)) {
-            category.setCategoryid(id);
-            category.setImage_url(category.getImage_url());
+            if (categoryRepo.existsById(id)) {
+                Optional<Category> existingCategoryOpt = categoryRepo.findById(id);
+                if (existingCategoryOpt.isPresent()) {
+                    Category existingCategory = existingCategoryOpt.get();
 
-            Category updatedCategory = categoryRepo.save(category);
-            return new CategoryResponseDTO("Category updated successfully", 200L, updatedCategory);
-        } else {
-            return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
-        }
+                    // Update the fields of the existing category with new values
+                    existingCategory.setCategoryid(id);
+                    existingCategory.setName(category.getName());
+                    if (category.getImage_url() != null) { // Only update image_url if a new one is provided
+                        existingCategory.setImage_url(category.getImage_url());
+                    }
+
+                    // Save the updated category
+                    Category updatedCategory = categoryRepo.save(existingCategory);
+                    return new CategoryResponseDTO("Category updated successfully", 200L, updatedCategory);
+                } else {
+                    return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
+                }
+            } else {
+                return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
+            }
+
     }
 
     public CategoryResponseDTO deleteCategory(Long id , String token) {

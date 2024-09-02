@@ -30,6 +30,6 @@ public class Category {
     private List<Product> products;
 
     @NotBlank(message = "Category Image is mandatory")
-    @Column(name = "imageUrl")
+    @Column(name = "imageurl")
     private String image_url;
 }
