@@ -58,14 +58,13 @@ public class CategoryService {
                 if (existingCategoryOpt.isPresent()) {
                     Category existingCategory = existingCategoryOpt.get();
 
-                    // Update the fields of the existing category with new values
                     existingCategory.setCategoryid(id);
                     existingCategory.setName(category.getName());
                     if (category.getImage_url() != null) { // Only update image_url if a new one is provided
                         existingCategory.setImage_url(category.getImage_url());
                     }
 
-                    // Save the updated category
+
                     Category updatedCategory = categoryRepo.save(existingCategory);
                     return new CategoryResponseDTO("Category updated successfully", 200L, updatedCategory);
                 } else {
