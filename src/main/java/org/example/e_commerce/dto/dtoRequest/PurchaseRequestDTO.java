@@ -1,16 +1,12 @@
 package org.example.e_commerce.dto.dtoRequest;
 
-import lombok.Data;
-
 import java.util.List;
 
-@Data
 public class PurchaseRequestDTO {
 
-    private Long userId;  // User ID for the purchase
-    private List<ProductRequestDTO> products;  // List of products to be added
+    private Long userId;
+    private List<ProductRequestDTO> products;
 
-    // Getters and Setters
     public Long getUserId() {
         return userId;
     }
@@ -27,13 +23,10 @@ public class PurchaseRequestDTO {
         this.products = products;
     }
 
-    // Inner class to represent individual product requests
-    @Data
     public static class ProductRequestDTO {
-        private Long productId;  // ID of the product to be added
-        private int quantity;    // Quantity of the product to be added
+        private Long productId;
+        private int quantity;
 
-        // Getters and Setters
         public Long getProductId() {
             return productId;
         }

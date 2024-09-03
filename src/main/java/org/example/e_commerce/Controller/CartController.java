@@ -23,8 +23,8 @@ public class CartController {
 
     // Purchase products from the cart
     @PostMapping("/purchase")
-    public ResponseEntity<SignUpResponseDTO> purchase(@RequestBody PurchaseRequestDTO request) {
-        SignUpResponseDTO response = cartService.purchase(request);
+    public ResponseEntity<SignUpResponseDTO> purchase(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO request) {
+        SignUpResponseDTO response = cartService.purchase(token, request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
