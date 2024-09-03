@@ -65,7 +65,7 @@ public class CartService {
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
             if (product.getStockQuantity() < productRequestDTO.getQuantity()) {
-                return new SignUpResponseDTO("Insufficient stock for product", HttpStatus.BAD_REQUEST.value());
+                return new SignUpResponseDTO("Insufficient stock for product: " + product.getProductId(), HttpStatus.BAD_REQUEST.value());
             }
 
             Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
