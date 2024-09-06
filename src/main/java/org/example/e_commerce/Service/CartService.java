@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 @Service
 public class CartService {
 
@@ -40,7 +39,7 @@ public class CartService {
     private JwtUtil jwtUtil;
 
     @Transactional
-    public SignUpResponseDTO addToCart(String token, List<PurchaseRequestDTO.ProductRequestDTO> productRequests) {
+    public SignUpResponseDTO addToCart(String token, List<PurchaseRequestDTO.ProductRequestDTO> productRequestDTOs) {
         String username = jwtUtil.extractUsername(token);
         Optional<User> userOptional = userRepo.findByUsername(username);
 
@@ -58,7 +57,7 @@ public class CartService {
             cartRepo.save(cart);
         }
 
-        for (PurchaseRequestDTO.ProductRequestDTO productRequestDTO : productRequests) {
+        for (PurchaseRequestDTO.ProductRequestDTO productRequestDTO : productRequestDTOs) {
             Product product = productRepo.findById(productRequestDTO.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 

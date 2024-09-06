@@ -10,6 +10,23 @@ public class PurchaseRequestDTO {
     private Long userId;
     private List<ProductRequestDTO> products;
 
+    // Getters and Setters
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public List<ProductRequestDTO> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<ProductRequestDTO> products) {
+        this.products = products;
+    }
+
     public static class ProductRequestDTO {
 
         private Long productId;
@@ -33,3 +50,4 @@ public class PurchaseRequestDTO {
         }
     }
 }
+
