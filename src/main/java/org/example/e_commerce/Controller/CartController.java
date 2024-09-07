@@ -15,10 +15,11 @@ public class CartController {
     private CartService cartService;
 
     @PostMapping("/add")
-    public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequest) {
-        SignUpResponseDTO response = cartService.addToCart(token, productRequest);
+    public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO request) {
+        SignUpResponseDTO response = cartService.addToCart(token, request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
 
     @PostMapping("/purchase")
     public ResponseEntity<SignUpResponseDTO> purchase(@RequestBody PurchaseRequestDTO request) {
