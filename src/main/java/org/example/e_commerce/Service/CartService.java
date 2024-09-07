@@ -149,7 +149,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 @Service
 public class CartService {
@@ -228,16 +227,25 @@ public class CartService {
     }
 
 
-
     @Transactional
-    public SignUpResponseDTO purchase(PurchaseRequestDTO request) {
+    public SignUpResponseDTO purchase(String token, PurchaseRequestDTO request) {
         try {
+            // Extract the username from the token
+            String username = jwtUtil.extractUsername(token);
+            Optional<User> userOptional = userRepo.findByUsername(username);
+
+            if (userOptional.isEmpty()) {
+                return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+            }
+
+            User user = userOptional.get();
+            Long userId = user.getUserid();
+
             // Retrieve the user's cart
-            Cart cart = cartRepo.findByUserid(request.getUserId())
+            Cart cart = cartRepo.findByUserid(userId)
                     .orElseThrow(() -> new RuntimeException("Cart not found for user"));
 
             double totalAmount = 0.0;
-
             String invoiceNumber = "INV-" + System.currentTimeMillis();
 
             for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
@@ -285,12 +293,11 @@ public class CartService {
                 transaction.setCartDetails(cartDetails);  // Keep the link to CartDetails
                 transaction.setInvoiceNumber("INV-" + System.currentTimeMillis());
                 transaction.setDate(LocalDateTime.now());
-                transaction.setOrderDescription("Purchase for user " + request.getUserId());
+                transaction.setOrderDescription("Purchase for user " + userId);
                 transaction.setQuantity(productRequest.getQuantity());  // Set purchased quantity
                 transaction.setAmount(amount);  // Set the correct amount
                 transactionRepo.save(transaction);
             }
-
 
             // Return response with invoice number in the message
             return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, HttpStatus.OK.value());
