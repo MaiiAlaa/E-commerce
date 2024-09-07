@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
@@ -16,7 +19,7 @@ public class CartController {
 
     @PostMapping("/add")
     public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO.ProductRequestDTO productRequest) {
-        SignUpResponseDTO response = cartService.addToCart(token, productRequest);
+        SignUpResponseDTO response = cartService.addToCart(token, (List<PurchaseRequestDTO.ProductRequestDTO>) productRequest);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
