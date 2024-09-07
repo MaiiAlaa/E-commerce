@@ -176,7 +176,7 @@ public class CartService {
     private JwtUtil jwtUtil;
 
     @Transactional
-    public SignUpResponseDTO addToCart(String token, PurchaseRequestDTO.ProductRequestDTO productRequestDTO) {
+    public SignUpResponseDTO addToCart(String token, List<PurchaseRequestDTO.ProductRequestDTO> productRequestDTOs) {
         String username = jwtUtil.extractUsername(token);
         Optional<User> userOptional = userRepo.findByUsername(username);
 
@@ -190,36 +190,38 @@ public class CartService {
 
         if (cart == null) {
             cart = new Cart();
-            cart.setUserid(userId); // Correct method call
+            cart.setUserid(userId);
             cartRepo.save(cart);
         }
 
-        Product product = productRepo.findById(productRequestDTO.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        for (PurchaseRequestDTO.ProductRequestDTO productRequestDTO : productRequestDTOs) {
+            Product product = productRepo.findById(productRequestDTO.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (product.getStockQuantity() < productRequestDTO.getQuantity()) {
-            return new SignUpResponseDTO("Insufficient stock for product", HttpStatus.BAD_REQUEST.value());
+            if (product.getStockQuantity() < productRequestDTO.getQuantity()) {
+                return new SignUpResponseDTO("Insufficient stock for product: " + product.getProductName(), HttpStatus.BAD_REQUEST.value());
+            }
+
+            Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+            CartDetails cartDetails;
+
+            if (existingCartDetails.isPresent()) {
+                cartDetails = existingCartDetails.get();
+                cartDetails.setQuantity(cartDetails.getQuantity() + productRequestDTO.getQuantity());
+                cartDetails.setAmount(cartDetails.getAmount() + product.getPrice() * productRequestDTO.getQuantity());
+            } else {
+                cartDetails = new CartDetails();
+                cartDetails.setCart(cart);
+                cartDetails.setProduct(product);
+                cartDetails.setQuantity(productRequestDTO.getQuantity());
+                cartDetails.setAmount(product.getPrice() * productRequestDTO.getQuantity());
+            }
+
+            cartDetailsRepo.save(cartDetails);
+
+            product.setStockQuantity(product.getStockQuantity() - productRequestDTO.getQuantity());
+            productRepo.save(product);
         }
-
-        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
-        CartDetails cartDetails;
-
-        if (existingCartDetails.isPresent()) {
-            cartDetails = existingCartDetails.get();
-            cartDetails.setQuantity(cartDetails.getQuantity() + productRequestDTO.getQuantity());
-            cartDetails.setAmount(cartDetails.getAmount() + product.getPrice() * productRequestDTO.getQuantity());
-        } else {
-            cartDetails = new CartDetails();
-            cartDetails.setCart(cart);
-            cartDetails.setProduct(product);
-            cartDetails.setQuantity(productRequestDTO.getQuantity());
-            cartDetails.setAmount(product.getPrice() * productRequestDTO.getQuantity());
-        }
-
-        cartDetailsRepo.save(cartDetails);
-
-        product.setStockQuantity(product.getStockQuantity() - productRequestDTO.getQuantity());
-        productRepo.save(product);
 
         return new SignUpResponseDTO("Products Added To Cart", HttpStatus.OK.value());
     }
