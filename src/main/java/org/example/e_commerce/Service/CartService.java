@@ -305,4 +305,77 @@ public class CartService {
             return new SignUpResponseDTO("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
     }
+    @Transactional
+    public SignUpResponseDTO increaseProductQuantity(String token, Long productId, int quantity) {
+        String username = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userRepo.findByUsername(username);
+
+        if (userOptional.isEmpty()) {
+            return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+        }
+
+        User user = userOptional.get();
+        Long userId = user.getUserid();
+        Cart cart = cartRepo.findByUserid(userId).orElseThrow(() -> new RuntimeException("Cart not found for user"));
+
+        Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+        if (existingCartDetails.isEmpty()) {
+            return new SignUpResponseDTO("Product not found in the cart", HttpStatus.NOT_FOUND.value());
+        }
+
+        CartDetails cartDetails = existingCartDetails.get();
+        cartDetails.setQuantity(cartDetails.getQuantity() + quantity);
+        cartDetails.setAmount(cartDetails.getAmount() + product.getPrice() * quantity);
+        cartDetailsRepo.save(cartDetails);
+
+        // Reduce stock quantity for the product
+        product.setStockQuantity(product.getStockQuantity() - quantity);
+        productRepo.save(product);
+
+        return new SignUpResponseDTO("Product quantity increased in cart", HttpStatus.OK.value());
+    }
+
+    @Transactional
+    public SignUpResponseDTO decreaseProductQuantity(String token, Long productId, int quantity) {
+        String username = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userRepo.findByUsername(username);
+
+        if (userOptional.isEmpty()) {
+            return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+        }
+
+        User user = userOptional.get();
+        Long userId = user.getUserid();
+        Cart cart = cartRepo.findByUserid(userId).orElseThrow(() -> new RuntimeException("Cart not found for user"));
+
+        Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+        if (existingCartDetails.isEmpty()) {
+            return new SignUpResponseDTO("Product not found in the cart", HttpStatus.NOT_FOUND.value());
+        }
+
+        CartDetails cartDetails = existingCartDetails.get();
+        int updatedQuantity = cartDetails.getQuantity() - quantity;
+
+        if (updatedQuantity < 0) {
+            return new SignUpResponseDTO("Cannot decrease quantity below zero", HttpStatus.BAD_REQUEST.value());
+        } else if (updatedQuantity == 0) {
+            cartDetails.setQuantity(0);
+            cartDetails.setAmount(0.0);  // Reset amount to zero
+        } else {
+            cartDetails.setQuantity(updatedQuantity);
+            cartDetails.setAmount(updatedQuantity * product.getPrice());
+        }
+
+        cartDetailsRepo.save(cartDetails);
+
+        // Increase stock quantity for the product
+        product.setStockQuantity(product.getStockQuantity() + quantity);
+        productRepo.save(product);
+
+        return new SignUpResponseDTO("Product quantity decreased in cart", HttpStatus.OK.value());
+    }
 }

@@ -26,4 +26,21 @@ public class CartController {
         SignUpResponseDTO response = cartService.purchase(token, request);  // Pass the token to the service method
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @PostMapping("/increase")
+    public ResponseEntity<SignUpResponseDTO> increaseProductQuantity(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Long productId,
+            @RequestParam int quantity) {
+        SignUpResponseDTO response = cartService.increaseProductQuantity(token, productId, quantity);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @PostMapping("/decrease")
+    public ResponseEntity<SignUpResponseDTO> decreaseProductQuantity(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Long productId,
+            @RequestParam int quantity) {
+        SignUpResponseDTO response = cartService.decreaseProductQuantity(token, productId, quantity);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 }
