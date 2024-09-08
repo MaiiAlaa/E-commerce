@@ -141,6 +141,7 @@ import jakarta.transaction.Transactional;
 import org.example.e_commerce.Entity.*;
 import org.example.e_commerce.Repository.*;
 import org.example.e_commerce.dto.dtoRequest.PurchaseRequestDTO;
+import org.example.e_commerce.dto.dtoResponse.CartResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.modelmapper.ModelMapper;
@@ -149,6 +150,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 @Service
 public class CartService {
@@ -173,6 +175,73 @@ public class CartService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Transactional
+    public CartResponseDTO viewCart(String token) {
+        String username = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userRepo.findByUsername(username);
+
+        if (userOptional.isEmpty()) {
+            return new CartResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value(), null);
+        }
+
+        User user = userOptional.get();
+        Long userId = user.getUserid();
+        Cart cart = cartRepo.findByUserid(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found for user"));
+
+        // Retrieve all cart details
+        List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
+
+        // Map CartDetails to a DTO
+        List<PurchaseRequestDTO.ProductRequestDTO> products = cartDetailsList.stream()
+                .map(cartDetails -> {
+                    PurchaseRequestDTO.ProductRequestDTO dto = new PurchaseRequestDTO.ProductRequestDTO();
+                    dto.setProductId(cartDetails.getProduct().getProductId());
+                    dto.setQuantity(cartDetails.getQuantity());
+                    return dto;
+                }).toList();
+
+        // Create a response with additional data
+        return new CartResponseDTO("Cart retrieved successfully", HttpStatus.OK.value(), products);
+    }
+
+    @Transactional
+    public SignUpResponseDTO removeProductFromCart(String token, Long productId) {
+        String username = jwtUtil.extractUsername(token);
+        Optional<User> userOptional = userRepo.findByUsername(username);
+
+        if (userOptional.isEmpty()) {
+            return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+        }
+
+        User user = userOptional.get();
+        Long userId = user.getUserid();
+        Cart cart = cartRepo.findByUserid(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found for user"));
+
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
+
+        if (existingCartDetails.isEmpty()) {
+            return new SignUpResponseDTO("Product not found in the cart", HttpStatus.NOT_FOUND.value());
+        }
+
+        CartDetails cartDetails = existingCartDetails.get();
+        cartRepo.findByUserid(userId).ifPresent(c -> {
+            if (cartDetails.getQuantity() > 0) {
+                // Increase the stock quantity for the product
+                product.setStockQuantity(product.getStockQuantity() + cartDetails.getQuantity());
+                productRepo.save(product);
+            }
+            cartDetailsRepo.delete(cartDetails);
+        });
+
+        return new SignUpResponseDTO("Product removed from cart", HttpStatus.OK.value());
+    }
+
 
     @Transactional
     public SignUpResponseDTO addToCart(String token, PurchaseRequestDTO request) {

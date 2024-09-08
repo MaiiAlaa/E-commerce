@@ -2,6 +2,7 @@ package org.example.e_commerce.Controller;
 
 import org.example.e_commerce.Service.CartService;
 import org.example.e_commerce.dto.dtoRequest.PurchaseRequestDTO;
+import org.example.e_commerce.dto.dtoResponse.CartResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,20 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
+
+    @GetMapping("/view")
+    public ResponseEntity<CartResponseDTO> viewCart(@RequestHeader("Authorization") String token) {
+        CartResponseDTO response = cartService.viewCart(token);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @DeleteMapping("/remove/{productId}")
+    public ResponseEntity<SignUpResponseDTO> removeProductFromCart(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long productId) {
+        SignUpResponseDTO response = cartService.removeProductFromCart(token, productId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 
     @PostMapping("/add")
     public ResponseEntity<SignUpResponseDTO> addToCart(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO request) {
