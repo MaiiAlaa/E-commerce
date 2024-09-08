@@ -13,5 +13,6 @@ import java.util.List;
 public class CartResponseDTO {
     private String message;
     private int statusCode;
-    private List<PurchaseRequestDTO.ProductRequestDTO> products;
+    private List<cartProductDetailsDTO> products;
+    private double totalCartPrice;
 }
