@@ -143,6 +143,7 @@ import org.example.e_commerce.Repository.*;
 import org.example.e_commerce.dto.dtoRequest.PurchaseRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.CartResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.cartProductDetailsDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,7 +183,7 @@ public class CartService {
         Optional<User> userOptional = userRepo.findByUsername(username);
 
         if (userOptional.isEmpty()) {
-            return new CartResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value(), null);
+            return new CartResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value(), null, 0.0);
         }
 
         User user = userOptional.get();
@@ -193,17 +194,28 @@ public class CartService {
         // Retrieve all cart details
         List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
 
-        // Map CartDetails to a DTO
-        List<PurchaseRequestDTO.ProductRequestDTO> products = cartDetailsList.stream()
+        // Map CartDetails to a DTO and calculate total price
+        final double[] totalCartPrice = {0.0};
+        List<cartProductDetailsDTO> products = cartDetailsList.stream()
                 .map(cartDetails -> {
-                    PurchaseRequestDTO.ProductRequestDTO dto = new PurchaseRequestDTO.ProductRequestDTO();
-                    dto.setProductId(cartDetails.getProduct().getProductId());
-                    dto.setQuantity(cartDetails.getQuantity());
-                    return dto;
+                    Product product = cartDetails.getProduct();
+                    int quantity = cartDetails.getQuantity();
+                    double itemTotalPrice = product.getPrice() * quantity; // Calculate item total price
+
+                    totalCartPrice[0] += itemTotalPrice; // Add to total cart price
+
+                    return new cartProductDetailsDTO(
+                            product.getProductId(),
+                            product.getProductName(),
+                            product.getImageUrl(), // Assuming imageUrl holds the main image
+                            product.getPrice(),
+                            quantity,
+                            itemTotalPrice
+                    );
                 }).toList();
 
         // Create a response with additional data
-        return new CartResponseDTO("Cart retrieved successfully", HttpStatus.OK.value(), products);
+        return new CartResponseDTO("Cart retrieved successfully", HttpStatus.OK.value(), products, totalCartPrice[0]);
     }
 
     @Transactional
