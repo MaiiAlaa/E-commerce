@@ -2,6 +2,7 @@ package org.example.e_commerce.Service;
 
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Repository.CategoryRepository;
+import org.example.e_commerce.dto.dtoRequest.CategoryRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
 import org.example.e_commerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -88,4 +90,18 @@ public class CategoryService {
             return new CategoryResponseDTO("Category ID " + id + " not found", 404L, null);
         }
     }
+    public List<CategoryRequestDTO> stores() {
+        List<Category> categories = categoryRepo.findAll();
+        return categories.stream()
+                .map(category -> {
+                    CategoryRequestDTO dto = new CategoryRequestDTO();
+                    dto.setName(category.getName());
+                    dto.setImageurl(category.getImage_url());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
 }

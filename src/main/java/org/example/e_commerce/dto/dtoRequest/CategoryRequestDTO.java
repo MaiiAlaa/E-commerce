@@ -9,4 +9,5 @@ import lombok.Setter;
 public class CategoryRequestDTO {
     @NotBlank(message = "Category name is mandatory")
     private String name;
+    private String imageurl;
 }
