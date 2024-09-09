@@ -27,29 +27,33 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/files")
 public class FileUploadController {
 
-    private static final String UPLOAD_DIR = "";
+    private static final String UPLOAD_DIR = "uploads/";
+    private static final String SERVER_URL = "https://e-commerce-production-e59d.up.railway.app/api/files/";  // Adjust your server's URL here
+
     @Autowired
     private ProductRepository productRepository;
+
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
             String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path path = Paths.get("https://e-commerce-production-e59d.up.railway.app/api/products/" + uniqueFileName);
+            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
             Files.copy(file.getInputStream(), path);
+
+            // Build the file URL to be stored in the database
+            String fileUrl = SERVER_URL + uniqueFileName;
+
             // Find the product by its ID
             Optional<Product> productOpt = productRepository.findById(productId);
             if (productOpt.isPresent()) {
                 Product product = productOpt.get();
-
-                // Assign the file path as the image URL
-                product.setImageUrl(path.toString());
-
-                // Save the updated product back to the database
-                productRepository.save(product);
+                product.setImageUrl(fileUrl);  // Save the file URL instead of the file path
+                productRepository.save(product);  // Save the product with the updated image URL
             } else {
                 return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
             }
-            return new ResponseEntity<>("File uploaded successfully: " + path.toString(), HttpStatus.OK);
+
+            return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
