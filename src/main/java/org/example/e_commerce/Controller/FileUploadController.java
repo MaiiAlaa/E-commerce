@@ -34,7 +34,7 @@ public class FileUploadController {
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
             String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Path path = Paths.get( uniqueFileName);
             Files.copy(file.getInputStream(), path);
             // Find the product by its ID
             Optional<Product> productOpt = productRepository.findById(productId);
