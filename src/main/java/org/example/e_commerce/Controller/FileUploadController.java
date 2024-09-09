@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class FileUploadController {
 
     private static final String UPLOAD_DIR = "uploads/";
-    private static final String SERVER_URL = "https://e-commerce-production-e59d.up.railway.app/api/files/file/";
+    private static final String SERVER_URL = "https://e-commerce-production-e59d.up.railway.app/api/files/";
 
     @Autowired
     private ProductRepository productRepository;
