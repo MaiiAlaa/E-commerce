@@ -75,11 +75,9 @@ public class CategoryController {
         }
     }
     @GetMapping("/stores")
-    public ResponseEntity<Map<String, List<CategoryRequestDTO>>> getAllCategoryNamesAndImages() {
+    public ResponseEntity<List<CategoryRequestDTO>> getAllCategoryNamesAndImages() {
         List<CategoryRequestDTO> response = categoryService.stores();
-        Map<String, List<CategoryRequestDTO>> responseMap = new HashMap<>();
-        responseMap.put("stores", response);
-
-        return new ResponseEntity<>(responseMap, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 }
