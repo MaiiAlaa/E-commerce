@@ -27,14 +27,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/files")
 public class FileUploadController {
 
-    private static final String UPLOAD_DIR = "https://e-commerce-production-e59d.up.railway.app/api/products/";
+    private static final String UPLOAD_DIR = "uploads/";
     @Autowired
     private ProductRepository productRepository;
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
             String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Path path = Paths.get("https://e-commerce-production-e59d.up.railway.app/api/products/" + uniqueFileName);
             Files.copy(file.getInputStream(), path);
             // Find the product by its ID
             Optional<Product> productOpt = productRepository.findById(productId);
