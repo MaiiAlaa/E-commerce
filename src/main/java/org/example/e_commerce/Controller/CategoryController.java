@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
@@ -21,12 +20,10 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         return new ResponseEntity<>(categoryService.getAllCategories(), HttpStatus.OK);
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
@@ -37,14 +34,12 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody Category category, @RequestHeader("Authorization") String token) {
         CategoryResponseDTO response = categoryService.createCategory(category, token);
         HttpStatus status = determineHttpStatus(response);
         return new ResponseEntity<>(response, status);
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody Category category) {
@@ -53,12 +48,17 @@ public class CategoryController {
         return new ResponseEntity<>(response, status);
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> deleteCategory(@RequestHeader("Authorization") String token, @PathVariable Long id) {
         CategoryResponseDTO response = categoryService.deleteCategory(id, token);
         HttpStatus status = determineHttpStatus(response);
         return new ResponseEntity<>(response, status);
+    }
+
+    @GetMapping("/stores")
+    public ResponseEntity<List<CategoryRequestDTO>> getAllCategoryNamesAndImages() {
+        List<CategoryRequestDTO> response = categoryService.stores();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     private HttpStatus determineHttpStatus(CategoryResponseDTO response) {
@@ -74,10 +74,4 @@ public class CategoryController {
             return HttpStatus.BAD_REQUEST; // For any other status codes, return a BAD REQUEST
         }
     }
-    @GetMapping("/stores")
-    public ResponseEntity<List<CategoryRequestDTO>> getAllCategoryNamesAndImages() {
-        List<CategoryRequestDTO> response = categoryService.stores();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
 }
