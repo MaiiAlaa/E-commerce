@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/files")
 public class FileUploadController {
 
-    private static final String UPLOAD_DIR = "D://E-commerce//uploads/";
+    private static final String UPLOAD_DIR = "";
     @Autowired
     private ProductRepository productRepository;
     @PostMapping("/upload")
