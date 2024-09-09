@@ -187,6 +187,7 @@ public class ProductService {
                 product.getCategory().getName(),
                 product.getImageUrl(), // main image
                 product.getDescription(),
+                product.getCategory().getCategoryid(),
                 imageUrls // additional images
         );
 
