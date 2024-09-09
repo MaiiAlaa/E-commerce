@@ -53,7 +53,7 @@ public class FileUploadController {
                 return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
             }
 
-            return new ResponseEntity<>("File uploaded successfully: " + path, HttpStatus.OK);
+            return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
