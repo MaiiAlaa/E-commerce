@@ -2,6 +2,7 @@ package org.example.e_commerce.Controller;
 
 import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Service.CategoryService;
+import org.example.e_commerce.dto.dtoRequest.CategoryRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.CategoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -70,5 +73,13 @@ public class CategoryController {
         } else {
             return HttpStatus.BAD_REQUEST; // For any other status codes, return a BAD REQUEST
         }
+    }
+    @GetMapping("/stores")
+    public ResponseEntity<Map<String, List<CategoryRequestDTO>>> getAllCategoryNamesAndImages() {
+        List<CategoryRequestDTO> response = categoryService.stores();
+        Map<String, List<CategoryRequestDTO>> responseMap = new HashMap<>();
+        responseMap.put("stores", response);
+
+        return new ResponseEntity<>(responseMap, HttpStatus.OK);
     }
 }
