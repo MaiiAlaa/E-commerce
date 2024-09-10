@@ -119,7 +119,9 @@ public class FileUploadController {
 
             Product product = productOpt.get();
             for (MultipartFile file : files) {
-                String uniqueFileName = UUID.randomUUID().toString() + file.getOriginalFilename() ;
+                String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+                String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+
                 Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
                 Files.copy(file.getInputStream(), path);
                 // Build the file URL to be stored in the database
