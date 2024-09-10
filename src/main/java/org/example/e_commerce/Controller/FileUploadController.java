@@ -120,10 +120,11 @@ public class FileUploadController {
                 String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
                 Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
                 Files.copy(file.getInputStream(), path);
-
+                // Build the file URL to be stored in the database
+                String fileUrl = SERVER_URL + uniqueFileName;
                 ProductImages productImage = new ProductImages();
                 productImage.setProduct(product);
-                productImage.setImageUrl(path.toString());
+                productImage.setImageUrl(fileUrl);
 
                 productImageRepository.save(productImage);
             }
