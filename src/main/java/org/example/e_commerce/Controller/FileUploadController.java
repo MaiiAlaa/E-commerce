@@ -36,7 +36,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String uniqueFileName = UUID.randomUUID().toString();
             Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
             Files.copy(file.getInputStream(), path);
 
@@ -117,7 +117,7 @@ public class FileUploadController {
 
             Product product = productOpt.get();
             for (MultipartFile file : files) {
-                String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                String uniqueFileName = UUID.randomUUID().toString() ;
                 Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
                 Files.copy(file.getInputStream(), path);
                 // Build the file URL to be stored in the database
