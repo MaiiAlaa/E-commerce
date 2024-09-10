@@ -36,7 +36,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
-            String uniqueFileName = UUID.randomUUID().toString();
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getContentType();
             Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
             Files.copy(file.getInputStream(), path);
 
