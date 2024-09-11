@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class FileUploadController {
 
     private static final String UPLOAD_DIR = "uploads/";
-    private static final String SERVER_URL = "https://";
+    private static final String SERVER_URL = "https://e-commerce-production-e59d.up.railway.app/api/files/";
 
     @Autowired
     private ProductRepository productRepository;
@@ -61,6 +61,8 @@ public class FileUploadController {
         }
     }
 
+
+
     @GetMapping("/image/{productId}")
     public ResponseEntity<byte[]> getImage(@PathVariable Long productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
@@ -83,29 +85,29 @@ public class FileUploadController {
     }
 
 
-    @GetMapping("/{filename}")
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
-        try {
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                // Determine the file's content type
-                String contentType = Files.probeContentType(filePath);
-                if (contentType == null) {
-                    contentType = "application/octet-stream"; // Default to binary stream if unknown
-                }
-
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .body(resource);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @GetMapping("/{filename}")
+//    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+//        try {
+//            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+//            Resource resource = new UrlResource(filePath.toUri());
+//
+//            if (resource.exists() && resource.isReadable()) {
+//                // Determine the file's content type
+//                String contentType = Files.probeContentType(filePath);
+//                if (contentType == null) {
+//                    contentType = "application/octet-stream"; // Default to binary stream if unknown
+//                }
+//
+//                return ResponseEntity.ok()
+//                        .contentType(MediaType.parseMediaType(contentType))
+//                        .body(resource);
+//            } else {
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            }
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     @Autowired
     private ProductImagesRepository productImageRepository;
@@ -166,4 +168,23 @@ public class FileUploadController {
             return new ResponseEntity<>("Image ID not found", HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/files/{filename:.+}")
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(Files.probeContentType(filePath)))
+                        .body(resource);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+
