@@ -22,6 +22,7 @@ public class CartController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+
     @DeleteMapping("/remove/{productId}")
     public ResponseEntity<SignUpResponseDTO> removeProductFromCart(
             @RequestHeader("Authorization") String token,

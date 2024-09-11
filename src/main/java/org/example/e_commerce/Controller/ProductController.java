@@ -6,6 +6,7 @@ import org.example.e_commerce.Service.ProductService;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.cartProductDetailsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,10 +72,11 @@ public class ProductController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<ProductsResponseDTO> getAllProducts() {
-        ProductsResponseDTO response = productService.getAllProducts();
-        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    public ResponseEntity<List<cartProductDetailsDTO>> getAllProducts(
+            @RequestHeader("Authorization") String token) {
+        List<cartProductDetailsDTO> products = productService.getAllProductsWithCartSize(token);
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/search")

@@ -11,13 +11,15 @@ public class ProductDetailsDTO extends ProductDTO {
     private String description ;
     private long categoryid ;
     private List<String> imageUrls;
+    private Integer cartSize;
 
 
-    public ProductDetailsDTO(Long id, String name, Double price, Integer stock, Long categoryId, String categoryName, String mainImageUrl,String description,long categoryid, List<String> imageUrls) {
+    public ProductDetailsDTO(Long id, String name, Double price, Integer stock, Long categoryId, String categoryName, String mainImageUrl,String description,long categoryid, List<String> imageUrls,Integer cartSize) {
         super(id, name, price, stock, categoryId, categoryName, mainImageUrl);
         this.description = description ;
         this.categoryid = categoryid;
         this.imageUrls = imageUrls;
+        this.cartSize=cartSize;
     }
 
     public ProductDetailsDTO() {
