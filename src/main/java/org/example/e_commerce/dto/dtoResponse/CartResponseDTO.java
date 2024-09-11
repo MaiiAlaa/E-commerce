@@ -15,4 +15,5 @@ public class CartResponseDTO {
     private int statusCode;
     private List<cartProductDetailsDTO> products;
     private double totalCartPrice;
+    private int cartSize;
 }

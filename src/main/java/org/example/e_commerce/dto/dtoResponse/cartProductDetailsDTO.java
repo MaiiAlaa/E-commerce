@@ -13,5 +13,12 @@ public class cartProductDetailsDTO {
         private String productMainImage;
         private double productPrice;
         private int quantity;
-        private double itemTotalPrice; // price * quantity
+        private double itemTotalPrice;
+        private int cartSize; // price * quantity
+
+        public cartProductDetailsDTO(Long productId, String productName, String imageUrl, Double price, int quantity, double itemTotalPrice) {
+        }
+
+        public cartProductDetailsDTO(Long productId, String productName, String imageUrl, Double price, int finalCartSize) {
+        }
 }

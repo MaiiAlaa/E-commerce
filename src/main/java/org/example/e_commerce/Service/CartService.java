@@ -46,7 +46,7 @@ public class CartService {
         Optional<User> userOptional = userRepo.findByUsername(username);
 
         if (userOptional.isEmpty()) {
-            return new CartResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value(), null, 0.0);
+            return new CartResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value(), null, 0.0, 0);
         }
 
         User user = userOptional.get();
@@ -57,8 +57,9 @@ public class CartService {
         // Retrieve all cart details
         List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
 
-        // Map CartDetails to a DTO and calculate total price
+        // Map CartDetails to a DTO and calculate total price and cart size
         final double[] totalCartPrice = {0.0};
+        int cartSize = cartDetailsList.size();  // Calculate cart size
         List<cartProductDetailsDTO> products = cartDetailsList.stream()
                 .map(cartDetails -> {
                     Product product = cartDetails.getProduct();
@@ -78,8 +79,9 @@ public class CartService {
                 }).toList();
 
         // Create a response with additional data
-        return new CartResponseDTO("Cart retrieved successfully", HttpStatus.OK.value(), products, totalCartPrice[0]);
+        return new CartResponseDTO("Cart retrieved successfully", HttpStatus.OK.value(), products, totalCartPrice[0], cartSize);
     }
+
 
     @Transactional
     public SignUpResponseDTO removeProductFromCart(String token, Long productId) {

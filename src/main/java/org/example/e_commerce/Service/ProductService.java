@@ -1,16 +1,9 @@
 package org.example.e_commerce.Service;
 
+import org.example.e_commerce.Entity.*;
+import org.example.e_commerce.Repository.*;
 import org.example.e_commerce.dto.dtoRequest.ProductRequestDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductsResponseDTO;
-import org.example.e_commerce.dto.dtoResponse.ProductDetailsDTO;
-import org.example.e_commerce.Entity.Product;
-import org.example.e_commerce.Entity.ProductImages;
-import org.example.e_commerce.Repository.ProductImagesRepository;
-import org.example.e_commerce.Entity.Category;
-import org.example.e_commerce.Repository.ProductRepository;
-import org.example.e_commerce.Repository.CategoryRepository;
-import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.*;
 import org.example.e_commerce.util.JwtUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +17,12 @@ public class ProductService {
 
     @Autowired
      ProductRepository productRepository;
+    @Autowired
+    private CartDetailsRepo cartDetailsRepo;
+    @Autowired
+    CartRepo cartRepo;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductImagesRepository productImagesRepository) {
         this.productRepository = productRepository;
@@ -164,9 +163,8 @@ public class ProductService {
         return responseDTO;
     }
 
-  
-    public ProductsResponseDTO getProductById(Long id) {
 
+    public ProductsResponseDTO getProductById(Long id) {
         Product product = productRepository.findById(id).orElse(null);
 
         if (product == null) {
@@ -178,6 +176,12 @@ public class ProductService {
                 .map(ProductImages::getImageUrl)
                 .collect(Collectors.toList());
 
+        // Calculate cart size
+        List<CartDetails> cartDetailsList = cartDetailsRepo.findByProduct(product);
+        Integer cartSize = cartDetailsList.stream()
+                .map(CartDetails::getQuantity)
+                .reduce(0, Integer::sum);
+
         ProductDetailsDTO productDTO = new ProductDetailsDTO(
                 product.getProductId(),
                 product.getProductName(),
@@ -188,11 +192,60 @@ public class ProductService {
                 product.getImageUrl(), // main image
                 product.getDescription(),
                 product.getCategory().getCategoryid(),
-                imageUrls // additional images
+                imageUrls, // additional images
+                cartSize // Set cart size
         );
 
         return new ProductsResponseDTO(0L, "Product retrieved successfully", Collections.singletonList(productDTO));
     }
+    public List<cartProductDetailsDTO> getAllProductsWithCartSize(String token) {
+        // Retrieve all products
+        List<Product> products = productRepository.findAll();
+
+        String username = jwtUtil.extractUsername(token);
+        System.out.println("Extracted username: " + username);
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        // Prepare a map to store cart quantities for each product
+        Map<Long, Integer> productQuantitiesInCart = new HashMap<>();
+
+        // Calculate quantities of each product in the cart
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            Long userId = user.getUserid();
+            Cart cart = cartRepo.findByUserid(userId).orElse(null);
+
+            if (cart != null) {
+                List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
+                for (CartDetails cartDetails : cartDetailsList) {
+                    Long productId = cartDetails.getProduct().getProductId();
+                    int quantity = cartDetails.getQuantity();
+                    productQuantitiesInCart.put(productId, productQuantitiesInCart.getOrDefault(productId, 0) + quantity);
+                }
+            }
+        }
+
+        // Map products to DTO and include cart size and item total price
+        return products.stream()
+                .map(product -> {
+                    int quantityInCart = productQuantitiesInCart.getOrDefault(product.getProductId(), 0);
+                    double itemTotalPrice = product.getPrice() * quantityInCart;
+
+                    return new cartProductDetailsDTO(
+                            product.getProductId(),
+                            product.getProductName(),
+                            product.getImageUrl(),
+                            product.getPrice(),
+                            quantityInCart,
+                            itemTotalPrice,
+                            quantityInCart  // Assuming cartSize here represents quantityInCart
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
 
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
