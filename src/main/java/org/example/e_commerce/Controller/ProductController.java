@@ -72,7 +72,7 @@ public class ProductController {
     }
 
 
-
+    @GetMapping
     public ResponseEntity<List<cartProductDetailsDTO>> getAllProducts(
             @RequestHeader("Authorization") String token) {
         List<cartProductDetailsDTO> products = productService.getAllProductsWithCartSize(token);
