@@ -71,7 +71,6 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
-
     @GetMapping
     public ResponseEntity<List<cartProductDetailsDTO>> getAllProducts(
             @RequestHeader("Authorization") String token) {
