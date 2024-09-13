@@ -35,7 +35,8 @@ public class FileUploadController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
-        try {
+        try
+        {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
             String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
             String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
@@ -190,6 +191,4 @@ public class FileUploadController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }
-//comment
