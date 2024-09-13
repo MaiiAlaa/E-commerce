@@ -1,8 +1,0 @@
-{
-  "volumes": [
-    {
-      "mountPath": "/mnt/data",
-      "size": "1Gi"
-    }
-  ]
-}
