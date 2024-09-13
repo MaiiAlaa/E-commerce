@@ -62,7 +62,10 @@ public class CartService {
         int cartSize = cartDetailsList.size();  // Calculate cart size
         List<cartProductDetailsDTO> products = cartDetailsList.stream()
                 .map(cartDetails -> {
-                    Product product = cartDetails.getProduct();
+                    // Explicitly fetching the product details
+                    Product product = productRepo.findById(cartDetails.getProduct().getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found"));
+
                     int quantity = cartDetails.getQuantity();
                     double itemTotalPrice = product.getPrice() * quantity; // Calculate item total price
 
@@ -74,7 +77,8 @@ public class CartService {
                             product.getImageUrl(), // Assuming imageUrl holds the main image
                             product.getPrice(),
                             quantity,
-                            itemTotalPrice
+                            itemTotalPrice,
+                            cartSize // Adding cart size
                     );
                 }).toList();
 
