@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/files")
 public class FileUploadController {
 
-    private static final String UPLOAD_DIR = "uploads/";
+    private static final String UPLOAD_DIR = "/mnt/data/uploads/";
     private static final String SERVER_URL = "https://e-commerce-production-4712.up.railway.app/api/files/";
 
     @Autowired
@@ -36,6 +36,7 @@ public class FileUploadController {
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
         try {
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
             String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
             String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
 
@@ -68,7 +69,8 @@ public class FileUploadController {
         Optional<Product> productOpt = productRepository.findById(productId);
         if (productOpt.isPresent()) {
             String imageUrl = productOpt.get().getImageUrl();
-            Path imagePath = Paths.get(imageUrl);
+            Path imagePath = Paths.get(UPLOAD_DIR).resolve(imageUrl.substring(SERVER_URL.length()));
+
 
             try {
                 byte[] imageBytes = Files.readAllBytes(imagePath);
@@ -114,6 +116,7 @@ public class FileUploadController {
     @PostMapping("/upload-images")
     public ResponseEntity<String> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files, @RequestParam("productId") Long productId) {
         try {
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
             Optional<Product> productOpt = productRepository.findById(productId);
             if (!productOpt.isPresent()) {
                 return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
@@ -172,6 +175,7 @@ public class FileUploadController {
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {
         try {
+
             Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
