@@ -1,7 +1,9 @@
 package org.example.e_commerce.Controller;
 
+import org.example.e_commerce.Entity.Category;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.ProductImages;
+import org.example.e_commerce.Repository.CategoryRepository;
 import org.example.e_commerce.Repository.ProductImagesRepository;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,6 +164,44 @@ public class FileUploadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    // Category Image Upload API
+    @PostMapping("/upload-category-image")
+    public ResponseEntity<String> uploadCategoryImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
+        try {
+            // Create upload directory if it doesn't exist
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            // Generate a unique file name for the uploaded image
+            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+
+            // Define the file path
+            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Files.copy(file.getInputStream(), path);
+
+            // Generate the file URL to be stored in the database
+            String fileUrl = SERVER_URL + uniqueFileName;
+
+            // Find the category by its ID
+            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                category.setImage_url(fileUrl);  // Save the file URL instead of the file path
+                categoryRepository.save(category);  // Save the category with the updated image URL
+            } else {
+                return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @DeleteMapping("/delete-image/{imageId}")
     public ResponseEntity<String> deleteImageById(@PathVariable Long imageId) {
