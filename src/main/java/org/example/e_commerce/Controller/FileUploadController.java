@@ -58,7 +58,9 @@ public class FileUploadController {
             }
 
             return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
