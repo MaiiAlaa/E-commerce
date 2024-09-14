@@ -68,13 +68,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // Define the URI for the sign-in endpoint (adjust this as per your actual URI)
         String signInURI = "/signin";
+        String signUpURI = "/signup";
 
-        // Skip the filter for the sign-in request
-        if (request.getServletPath().equals(signInURI)) {
+        if (request.getServletPath().equals(signInURI) || request.getServletPath().equals(signUpURI)) {
             chain.doFilter(request, response);
             return;
         }
-
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;
