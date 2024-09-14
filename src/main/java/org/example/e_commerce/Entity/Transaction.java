@@ -42,7 +42,7 @@ public class Transaction {
     @Column(name = "transaction_id")
     private Long transactionId;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(optional = true)
     @JoinColumn(name = "cartdetails_id")
     private CartDetails cartDetails;
 

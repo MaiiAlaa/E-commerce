@@ -58,7 +58,7 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Cart not found for user"));
 
         // Retrieve all cart details
-        List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
+        List<CartDetails> cartDetailsList = cartDetailsRepo.findByCartAndIsPurchasedFalse(cart);
 
         // Map CartDetails to a DTO and calculate total price and cart size
         final double[] totalCartPrice = {0.0};
@@ -179,8 +179,6 @@ public class CartService {
         return new SignUpResponseDTO("Products added to cart", HttpStatus.OK.value());
     }
 
-@Autowired
-private RemoveProductAfterPurchase removeProductAfterPurchase;
 
     @Transactional
     public PurchaseResponseDTO purchase(String token, PurchaseRequestDTO request) {
@@ -233,6 +231,17 @@ private RemoveProductAfterPurchase removeProductAfterPurchase;
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
 
+                int newCartQuantity = cartDetails.getQuantity() - productRequest.getQuantity();
+                cartDetails.setQuantity(newCartQuantity);
+                cartDetailsRepo.save(cartDetails);
+
+                // If the quantity in the cart becomes zero, do not remove it (Solution 1)
+                if (newCartQuantity == 0) {
+                    // You could add a status or flag to the cart details to indicate it's empty if needed
+                    cartDetails.setQuantity(0);
+                    cartDetails.setPurchased(true);
+                    cartDetailsRepo.save(cartDetails); // Still save the updated cart details
+                }
 
                 // Update product stock
                 product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
@@ -247,9 +256,6 @@ private RemoveProductAfterPurchase removeProductAfterPurchase;
                 transaction.setQuantity(productRequest.getQuantity());
                 transaction.setAmount(amount);
                 transactionRepo.save(transaction);
-
-                // Remove product from cart if quantity becomes zero
-                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
             }
 
             // Return response with invoice number included separately

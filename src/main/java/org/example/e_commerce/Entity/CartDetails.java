@@ -51,4 +51,9 @@ public class CartDetails {
 
     @Column(name = "amount")
     private double amount;
+
+    @Column(name = "is_purchased", nullable = false)
+    private boolean isPurchased = false;
+
+
 }

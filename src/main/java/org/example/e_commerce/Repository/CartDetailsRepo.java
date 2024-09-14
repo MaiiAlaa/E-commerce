@@ -24,4 +24,6 @@ public interface CartDetailsRepo extends JpaRepository<CartDetails, Long> {
 
     // Delete specific cart details entry by product and cart (useful for remove product from cart feature)
     void deleteByCartAndProduct(Cart cart, Product product);
+
+    List<CartDetails> findByCartAndIsPurchasedFalse(Cart cart);
 }
