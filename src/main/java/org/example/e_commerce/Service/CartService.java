@@ -191,68 +191,43 @@ public class CartService {
         Cart cart = cartRepo.findByUserid(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found for user"));
 
+        // Check if there are products in the cart
         List<CartDetails> cartDetailsList = cartDetailsRepo.findByCart(cart);
-
         if (cartDetailsList.isEmpty()) {
-            return new SignUpResponseDTO("Cart is empty", HttpStatus.BAD_REQUEST.value());
+            return new SignUpResponseDTO("Cart is empty, nothing to purchase", HttpStatus.BAD_REQUEST.value());
         }
 
-        // Process each product in the cart for purchase
-        for (CartDetails cartDetails : cartDetailsList) {
-            Product product = cartDetails.getProduct();
+        for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
+            Product product = productRepo.findById(productRequest.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            if (cartDetails.getQuantity() > product.getStockQuantity()) {
-                return new SignUpResponseDTO("Insufficient stock for product: " + product.getProductName(), HttpStatus.BAD_REQUEST.value());
-            }
+            CartDetails cartDetails = cartDetailsRepo.findByCartAndProduct(cart, product)
+                    .orElseThrow(() -> new RuntimeException("Product not found in cart"));
 
-            // Update stock
+            // Handle transaction recording
+            Transaction transaction = new Transaction();
+            transaction.setCartDetails(cartDetails);
+            transaction.setInvoiceNumber("INV-" + System.currentTimeMillis()); // Example invoice number generation
+            transaction.setDate(LocalDateTime.now());
+            transaction.setOrderDescription("Purchased " + product.getProductName());
+            transaction.setQuantity(cartDetails.getQuantity());
+            transaction.setAmount(cartDetails.getAmount());
+            transactionRepo.save(transaction);
+
+            // Update product stock
             product.setStockQuantity(product.getStockQuantity() - cartDetails.getQuantity());
             productRepo.save(product);
-
-            // Add additional purchase processing logic here if needed (e.g., generating invoice)
         }
 
-        // Delete all CartDetails after purchase
-        cartDetailsRepo.deleteByCart(cart);
+        // Delete all cart details after purchase
+        cartDetailsRepo.deleteAll(cartDetailsList);
 
-        // Delete the Cart itself after purchase
+        // Delete the cart after purchase
         cartRepo.delete(cart);
 
-        return new SignUpResponseDTO("Purchase successful", HttpStatus.OK.value());
+        return new SignUpResponseDTO("Purchase completed successfully and cart deleted", HttpStatus.OK.value());
     }
 
-
-    @Transactional
-    public SignUpResponseDTO increaseProductQuantity(String token, Long productId, int quantity) {
-        String username = jwtUtil.extractUsername(token);
-        Optional<User> userOptional = userRepo.findByUsername(username);
-
-        if (userOptional.isEmpty()) {
-            return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
-        }
-
-        User user = userOptional.get();
-        Long userId = user.getUserid();
-        Cart cart = cartRepo.findByUserid(userId).orElseThrow(() -> new RuntimeException("Cart not found for user"));
-
-        Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
-
-        Optional<CartDetails> existingCartDetails = cartDetailsRepo.findByCartAndProduct(cart, product);
-        if (existingCartDetails.isEmpty()) {
-            return new SignUpResponseDTO("Product not found in the cart", HttpStatus.NOT_FOUND.value());
-        }
-
-        CartDetails cartDetails = existingCartDetails.get();
-        cartDetails.setQuantity(cartDetails.getQuantity() + quantity);
-        cartDetails.setAmount(cartDetails.getAmount() + product.getPrice() * quantity);
-        cartDetailsRepo.save(cartDetails);
-
-        // Reduce stock quantity for the product
-        product.setStockQuantity(product.getStockQuantity() - quantity);
-        productRepo.save(product);
-
-        return new SignUpResponseDTO("Product quantity increased in cart", HttpStatus.OK.value());
-    }
 
     @Transactional
     public SignUpResponseDTO decreaseProductQuantity(String token, Long productId, int quantity) {
