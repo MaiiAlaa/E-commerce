@@ -15,31 +15,37 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductImagesRepository productImagesRepository;
+    private final CartDetailsRepo cartDetailsRepo;
+    private final CartRepo cartRepo;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final ModelMapper modelMapper;
+
     @Autowired
-     ProductRepository productRepository;
-    @Autowired
-    private CartDetailsRepo cartDetailsRepo;
-    @Autowired
-    CartRepo cartRepo;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductImagesRepository productImagesRepository) {
+    public ProductService(ProductRepository productRepository,
+                          CategoryRepository categoryRepository,
+                          ProductImagesRepository productImagesRepository,
+                          CartDetailsRepo cartDetailsRepo,
+                          CartRepo cartRepo,
+                          UserRepository userRepository,
+                          JwtUtil jwtUtil,
+                          ModelMapper modelMapper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.productImagesRepository = productImagesRepository;
+        this.cartDetailsRepo = cartDetailsRepo;
+        this.cartRepo = cartRepo;
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.modelMapper = modelMapper;
     }
-     CategoryRepository categoryRepository;
-    @Autowired
-     ProductImagesRepository productImagesRepository;
-    @Autowired
-    private JwtUtil jwtUtil;
-    @Autowired
-    private ModelMapper modelMapper;
+
     public Product convertToEntity(ProductRequestDTO productDTO) {
         return modelMapper.map(productDTO, Product.class);
     }
-
 
     public SignUpResponseDTO addProduct(ProductRequestDTO productDTO, String token) {
         String role = jwtUtil.extractRole(token);
@@ -51,18 +57,13 @@ public class ProductService {
             return responseDTO;
         }
 
-
-        if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
-                productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
-                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null ||
-                productDTO.getMainImageUrl() == null) {
+        if (isProductDTOInvalid(productDTO)) {
             responseDTO.setMessage("Fill the data");
             responseDTO.setStatusCode(-1);
             return responseDTO;
         }
 
-        Product productExist = productRepository.findByProductName(productDTO.getProductName());
-        if (productExist != null) {
+        if (productRepository.findByProductName(productDTO.getProductName()).isPresent()) {
             responseDTO.setMessage("Product Already Exists. Update if you want");
             responseDTO.setStatusCode(-2);
             return responseDTO;
@@ -79,20 +80,12 @@ public class ProductService {
         productNew.setCategory(category);
         productRepository.save(productNew);
 
-        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
-            for (String imageUrl : productDTO.getImageUrls()) {
-                ProductImages productImage = new ProductImages();
-                productImage.setProduct(productNew);
-                productImage.setImageUrl(imageUrl);
-                productImagesRepository.save(productImage);
-            }
-        }
+        saveProductImages(productDTO.getImageUrls(), productNew);
 
         responseDTO.setMessage("Product added successfully");
         responseDTO.setStatusCode(0);
         return responseDTO;
     }
-
 
     public SignUpResponseDTO updateProduct(ProductRequestDTO productDTO, String token) {
         String role = jwtUtil.extractRole(token);
@@ -104,7 +97,9 @@ public class ProductService {
             return responseDTO;
         }
 
-        Product productExist = productRepository.findByProductName(productDTO.getProductName());
+        Product productExist = productRepository.findByProductName(productDTO.getProductName())
+                .orElse(null);
+
         if (productExist == null) {
             responseDTO.setMessage("Product didn't exist. Please add product");
             responseDTO.setStatusCode(-4);
@@ -118,23 +113,10 @@ public class ProductService {
             return responseDTO;
         }
 
-        productExist.setCategory(category);
-        productExist.setPrice(productDTO.getPrice());
-        productExist.setDescription(productDTO.getDescription());
-        productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
-        productExist.setManufacturer(productDTO.getManufacturer());
-        productExist.setStockQuantity(productDTO.getStockQuantity());
-
+        updateProductDetails(productExist, productDTO, category);
         productRepository.save(productExist);
 
-        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
-            for (String imageUrl : productDTO.getImageUrls()) {
-                ProductImages productImage = new ProductImages();
-                productImage.setProduct(productExist);
-                productImage.setImageUrl(imageUrl);
-                productImagesRepository.save(productImage);
-            }
-        }
+        saveProductImages(productDTO.getImageUrls(), productExist);
 
         responseDTO.setMessage("Product updated successfully");
         responseDTO.setStatusCode(0);
@@ -163,7 +145,6 @@ public class ProductService {
         return responseDTO;
     }
 
-
     public ProductsResponseDTO getProductById(Long id) {
         Product product = productRepository.findById(id).orElse(null);
 
@@ -176,9 +157,7 @@ public class ProductService {
                 .map(ProductImages::getImageUrl)
                 .collect(Collectors.toList());
 
-        // Calculate cart size
-        List<CartDetails> cartDetailsList = cartDetailsRepo.findByProduct(product);
-        Integer cartSize = cartDetailsList.stream()
+        Integer cartSize = cartDetailsRepo.findByProduct(product).stream()
                 .map(CartDetails::getQuantity)
                 .reduce(0, Integer::sum);
 
@@ -189,29 +168,25 @@ public class ProductService {
                 product.getStockQuantity(),
                 product.getCategory().getCategoryid(),
                 product.getCategory().getName(),
-                product.getImageUrl(), // main image
+                product.getImageUrl(),
                 product.getDescription(),
                 product.getCategory().getCategoryid(),
-                imageUrls, // additional images
-                cartSize // Set cart size
+                imageUrls,
+                cartSize
         );
 
         return new ProductsResponseDTO(0L, "Product retrieved successfully", Collections.singletonList(productDTO));
     }
+
     public List<cartProductDetailsDTO> getAllProductsWithCartSize(String token) {
-        // Retrieve all products
         List<Product> products = productRepository.findAll();
 
         String username = jwtUtil.extractUsername(token);
-        System.out.println("Extracted username: " + username);
         Optional<User> userOptional = userRepository.findByUsername(username);
 
-        // Prepare a map to store cart quantities for each product
         Map<Long, Integer> productQuantitiesInCart = new HashMap<>();
 
-        // Calculate quantities of each product in the cart
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
+        userOptional.ifPresent(user -> {
             Long userId = user.getUserid();
             Cart cart = cartRepo.findByUserid(userId).orElse(null);
 
@@ -223,9 +198,8 @@ public class ProductService {
                     productQuantitiesInCart.put(productId, productQuantitiesInCart.getOrDefault(productId, 0) + quantity);
                 }
             }
-        }
+        });
 
-        // Map products to DTO and include cart size and item total price
         return products.stream()
                 .map(product -> {
                     int quantityInCart = productQuantitiesInCart.getOrDefault(product.getProductId(), 0);
@@ -238,14 +212,11 @@ public class ProductService {
                             product.getPrice(),
                             quantityInCart,
                             itemTotalPrice,
-                            quantityInCart  // Assuming cartSize here represents quantityInCart
+                            quantityInCart
                     );
                 })
                 .collect(Collectors.toList());
     }
-
-
-
 
     public List<Product> searchProducts(String searchTerm) {
         return productRepository.searchByNameOrManufacturer(searchTerm);
@@ -270,10 +241,40 @@ public class ProductService {
                         product.getStockQuantity(),
                         product.getCategory().getCategoryid(),
                         product.getCategory().getName(),
-                        product.getImageUrl()  // Assuming the main image URL is stored here
+                        product.getImageUrl()
                 ))
                 .collect(Collectors.toList());
 
         return new ProductsResponseDTO(0L, "Products retrieved successfully", productDTOs);
+    }
+
+    // Utility methods for common logic
+    private boolean isProductDTOInvalid(ProductRequestDTO productDTO) {
+        return productDTO.getProductName() == null || productDTO.getPrice() == null ||
+                productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
+                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null ||
+                productDTO.getMainImageUrl() == null;
+    }
+
+    private void saveProductImages(List<String> imageUrls, Product product) {
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            imageUrls.forEach(url -> {
+                ProductImages image = new ProductImages();
+                image.setImageUrl(url);
+                image.setProduct(product);
+                productImagesRepository.save(image);
+            });
+        }
+    }
+
+    private void updateProductDetails(Product existingProduct, ProductRequestDTO productDTO, Category category) {
+        existingProduct.setProductName(productDTO.getProductName());
+        existingProduct.setDescription(productDTO.getDescription());
+        existingProduct.setPrice(productDTO.getPrice());
+        existingProduct.setStockQuantity(productDTO.getStockQuantity());
+        existingProduct.setCategory(category);
+        existingProduct.setWarrantyPeriod(productDTO.getWarrantyPeriod());
+        existingProduct.setManufacturer(productDTO.getManufacturer());
+        existingProduct.setImageUrl(productDTO.getMainImageUrl());
     }
 }

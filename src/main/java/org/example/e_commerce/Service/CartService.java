@@ -5,6 +5,7 @@ import org.example.e_commerce.Entity.*;
 import org.example.e_commerce.Repository.*;
 import org.example.e_commerce.dto.dtoRequest.PurchaseRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.CartResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.PurchaseResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.cartProductDetailsDTO;
 import org.example.e_commerce.util.JwtUtil;
@@ -14,7 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 @Service
 public class CartService {
@@ -177,62 +180,132 @@ public class CartService {
     }
 
 
+//    @Autowired
+//    private RemoveProductAfterPurchase removeProductAfterPurchase;
+//
+//    @Transactional
+//    public SignUpResponseDTO purchase(String token, PurchaseRequestDTO request) {
+//        try {
+//            // Extract the username from the token
+//            String username = jwtUtil.extractUsername(token);
+//            Optional<User> userOptional = userRepo.findByUsername(username);
+//
+//            if (userOptional.isEmpty()) {
+//                return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+//            }
+//
+//            User user = userOptional.get();
+//            Long userId = user.getUserid();
+//
+//            double totalAmount = 0.0;
+//            String invoiceNumber = "INV-" + System.currentTimeMillis();
+//
+//            for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
+//                Product product = productRepo.findById(productRequest.getProductId())
+//                        .orElseThrow(() -> new RuntimeException("Product not found"));
+//
+//                // Check if the product exists in the cart
+//                Cart cart = cartRepo.findByUserid(userId)
+//                        .orElseThrow(() -> new RuntimeException("Cart not found for user"));
+//
+//                CartDetails cartDetails = cartDetailsRepo.findByCartAndProduct(cart, product)
+//                        .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+//
+//                // Check if the requested quantity is greater than the quantity in the cart
+//                if (productRequest.getQuantity() > cartDetails.getQuantity()) {
+//                    return new SignUpResponseDTO("Requested quantity exceeds the quantity in the cart for product: "
+//                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
+//                }
+//
+//                // Check if there's sufficient stock for the purchase
+//                if (product.getStockQuantity() < productRequest.getQuantity()) {
+//                    return new SignUpResponseDTO("Insufficient stock for product: "
+//                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
+//                }
+//
+//                double amount = product.getPrice() * productRequest.getQuantity();
+//                totalAmount += amount;
+//
+//                // Remove product from cart if quantity becomes zero
+//                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
+//
+//                // Update product stock
+//                product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
+//                productRepo.save(product);
+//
+//                // Create a transaction record
+//                Transaction transaction = new Transaction();
+//                transaction.setCartDetails(cartDetails);
+//                transaction.setInvoiceNumber(invoiceNumber);
+//                transaction.setDate(LocalDateTime.now());
+//                transaction.setOrderDescription("Purchase for user " + userId);
+//                transaction.setQuantity(productRequest.getQuantity());
+//                transaction.setAmount(amount);
+//                transactionRepo.save(transaction);
+//            }
+//
+//            // Return response with invoice number in the message
+//            return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, HttpStatus.OK.value());
+//        } catch (RuntimeException e) {
+//            return new SignUpResponseDTO("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        }
+//    }
+@Autowired
+private RemoveProductAfterPurchase removeProductAfterPurchase;
+
     @Transactional
-    public SignUpResponseDTO purchase(String token, PurchaseRequestDTO request) {
+    public PurchaseResponseDTO purchase(String token, PurchaseRequestDTO request) {
+        PurchaseResponseDTO response = new PurchaseResponseDTO();
+
         try {
             // Extract the username from the token
             String username = jwtUtil.extractUsername(token);
             Optional<User> userOptional = userRepo.findByUsername(username);
 
             if (userOptional.isEmpty()) {
-                return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
+                response.setMessage("User not found with username: " + username);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
             }
 
             User user = userOptional.get();
             Long userId = user.getUserid();
 
-            // Retrieve the user's cart
-            Cart cart = cartRepo.findByUserid(userId)
-                    .orElseThrow(() -> new RuntimeException("Cart not found for user"));
-
             double totalAmount = 0.0;
-            String invoiceNumber = "INV-" + System.currentTimeMillis();
+            String invoiceNumber = "INV-" + System.currentTimeMillis(); // Generate a unique invoice number
 
             for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
                 Product product = productRepo.findById(productRequest.getProductId())
                         .orElseThrow(() -> new RuntimeException("Product not found"));
 
                 // Check if the product exists in the cart
+                Cart cart = cartRepo.findByUserid(userId)
+                        .orElseThrow(() -> new RuntimeException("Cart not found for user"));
+
                 CartDetails cartDetails = cartDetailsRepo.findByCartAndProduct(cart, product)
                         .orElseThrow(() -> new RuntimeException("Product not found in cart"));
 
                 // Check if the requested quantity is greater than the quantity in the cart
                 if (productRequest.getQuantity() > cartDetails.getQuantity()) {
-                    return new SignUpResponseDTO("Requested quantity exceeds the quantity in the cart for product: "
-                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
+                    response.setMessage("Requested quantity exceeds the quantity in the cart for product: "
+                            + productRequest.getProductId());
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    return response;
                 }
 
                 // Check if there's sufficient stock for the purchase
                 if (product.getStockQuantity() < productRequest.getQuantity()) {
-                    return new SignUpResponseDTO("Insufficient stock for product: "
-                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
+                    response.setMessage("Insufficient stock for product: "
+                            + productRequest.getProductId());
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    return response;
                 }
 
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
 
-                // Update the quantity in CartDetails
-                int updatedQuantity = cartDetails.getQuantity() - productRequest.getQuantity();
-
-                if (updatedQuantity == 0) {
-                    // If quantity is zero, remove the product from the cart
-                    cartDetailsRepo.delete(cartDetails);
-                } else {
-                    // Update the quantity and amount in the cart
-                    cartDetails.setQuantity(updatedQuantity);
-                    cartDetails.setAmount(updatedQuantity * product.getPrice());
-                    cartDetailsRepo.save(cartDetails);
-                }
+                // Remove product from cart if quantity becomes zero
+                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
 
                 // Update product stock
                 product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
@@ -240,21 +313,29 @@ public class CartService {
 
                 // Create a transaction record
                 Transaction transaction = new Transaction();
-                transaction.setCartDetails(cartDetails);  // Keep the link to CartDetails
+                transaction.setCartDetails(cartDetails);
                 transaction.setInvoiceNumber(invoiceNumber);
                 transaction.setDate(LocalDateTime.now());
                 transaction.setOrderDescription("Purchase for user " + userId);
-                transaction.setQuantity(productRequest.getQuantity());  // Set purchased quantity
-                transaction.setAmount(amount);  // Set the correct amount
+                transaction.setQuantity(productRequest.getQuantity());
+                transaction.setAmount(amount);
                 transactionRepo.save(transaction);
             }
 
-            // Return response with invoice number in the message
-            return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, HttpStatus.OK.value());
+            // Return response with invoice number included separately
+            response.setMessage("Purchase successful.");
+            response.setInvoiceNumber(invoiceNumber);
+            response.setStatusCode(HttpStatus.OK.value());
         } catch (RuntimeException e) {
-            return new SignUpResponseDTO("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Error: " + e.getMessage());
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
+
+        return response;
     }
+
+
+
 
 
     @Transactional
