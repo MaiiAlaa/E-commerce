@@ -3,6 +3,7 @@ package org.example.e_commerce.Controller;
 import org.example.e_commerce.Service.CartService;
 import org.example.e_commerce.dto.dtoRequest.PurchaseRequestDTO;
 import org.example.e_commerce.dto.dtoResponse.CartResponseDTO;
+import org.example.e_commerce.dto.dtoResponse.PurchaseResponseDTO;
 import org.example.e_commerce.dto.dtoResponse.SignUpResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,6 @@ public class CartController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-
     @DeleteMapping("/remove/{productId}")
     public ResponseEntity<SignUpResponseDTO> removeProductFromCart(
             @RequestHeader("Authorization") String token,
@@ -38,10 +38,11 @@ public class CartController {
     }
 
     @PostMapping("/purchase")
-    public ResponseEntity<SignUpResponseDTO> purchase(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO request) {
-        SignUpResponseDTO response = cartService.purchase(token, request);  // Pass the token to the service method
+    public ResponseEntity<PurchaseResponseDTO> purchase(@RequestHeader("Authorization") String token, @RequestBody PurchaseRequestDTO request) {
+        PurchaseResponseDTO response = cartService.purchase(token, request);  // Pass the token to the service method
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
     @PostMapping("/increase")
     public ResponseEntity<SignUpResponseDTO> increaseProductQuantity(
             @RequestHeader("Authorization") String token,
