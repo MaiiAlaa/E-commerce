@@ -12,4 +12,7 @@ public interface CartDetailsRepo extends JpaRepository<CartDetails, Long> {
     Optional<CartDetails> findByCartAndProduct(Cart cart, Product product);
 
     List<CartDetails> findByProduct(Product product);
+
+    // New method to delete all CartDetails related to a specific cart
+    void deleteByCart(Cart cart);
 }
