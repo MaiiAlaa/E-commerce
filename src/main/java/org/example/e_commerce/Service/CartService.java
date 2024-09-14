@@ -233,8 +233,6 @@ private RemoveProductAfterPurchase removeProductAfterPurchase;
                 double amount = product.getPrice() * productRequest.getQuantity();
                 totalAmount += amount;
 
-                // Remove product from cart if quantity becomes zero
-                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
 
                 // Update product stock
                 product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
@@ -249,6 +247,9 @@ private RemoveProductAfterPurchase removeProductAfterPurchase;
                 transaction.setQuantity(productRequest.getQuantity());
                 transaction.setAmount(amount);
                 transactionRepo.save(transaction);
+
+                // Remove product from cart if quantity becomes zero
+                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
             }
 
             // Return response with invoice number included separately
