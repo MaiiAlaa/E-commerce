@@ -179,77 +179,6 @@ public class CartService {
         return new SignUpResponseDTO("Products added to cart", HttpStatus.OK.value());
     }
 
-
-//    @Autowired
-//    private RemoveProductAfterPurchase removeProductAfterPurchase;
-//
-//    @Transactional
-//    public SignUpResponseDTO purchase(String token, PurchaseRequestDTO request) {
-//        try {
-//            // Extract the username from the token
-//            String username = jwtUtil.extractUsername(token);
-//            Optional<User> userOptional = userRepo.findByUsername(username);
-//
-//            if (userOptional.isEmpty()) {
-//                return new SignUpResponseDTO("User not found with username: " + username, HttpStatus.NOT_FOUND.value());
-//            }
-//
-//            User user = userOptional.get();
-//            Long userId = user.getUserid();
-//
-//            double totalAmount = 0.0;
-//            String invoiceNumber = "INV-" + System.currentTimeMillis();
-//
-//            for (PurchaseRequestDTO.ProductRequestDTO productRequest : request.getProducts()) {
-//                Product product = productRepo.findById(productRequest.getProductId())
-//                        .orElseThrow(() -> new RuntimeException("Product not found"));
-//
-//                // Check if the product exists in the cart
-//                Cart cart = cartRepo.findByUserid(userId)
-//                        .orElseThrow(() -> new RuntimeException("Cart not found for user"));
-//
-//                CartDetails cartDetails = cartDetailsRepo.findByCartAndProduct(cart, product)
-//                        .orElseThrow(() -> new RuntimeException("Product not found in cart"));
-//
-//                // Check if the requested quantity is greater than the quantity in the cart
-//                if (productRequest.getQuantity() > cartDetails.getQuantity()) {
-//                    return new SignUpResponseDTO("Requested quantity exceeds the quantity in the cart for product: "
-//                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
-//                }
-//
-//                // Check if there's sufficient stock for the purchase
-//                if (product.getStockQuantity() < productRequest.getQuantity()) {
-//                    return new SignUpResponseDTO("Insufficient stock for product: "
-//                            + productRequest.getProductId(), HttpStatus.BAD_REQUEST.value());
-//                }
-//
-//                double amount = product.getPrice() * productRequest.getQuantity();
-//                totalAmount += amount;
-//
-//                // Remove product from cart if quantity becomes zero
-//                removeProductAfterPurchase.removeProductIfQuantityZero(userId, productRequest.getProductId(), productRequest.getQuantity());
-//
-//                // Update product stock
-//                product.setStockQuantity(product.getStockQuantity() - productRequest.getQuantity());
-//                productRepo.save(product);
-//
-//                // Create a transaction record
-//                Transaction transaction = new Transaction();
-//                transaction.setCartDetails(cartDetails);
-//                transaction.setInvoiceNumber(invoiceNumber);
-//                transaction.setDate(LocalDateTime.now());
-//                transaction.setOrderDescription("Purchase for user " + userId);
-//                transaction.setQuantity(productRequest.getQuantity());
-//                transaction.setAmount(amount);
-//                transactionRepo.save(transaction);
-//            }
-//
-//            // Return response with invoice number in the message
-//            return new SignUpResponseDTO("Purchase successful. Invoice Number: " + invoiceNumber, HttpStatus.OK.value());
-//        } catch (RuntimeException e) {
-//            return new SignUpResponseDTO("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
-//        }
-//    }
 @Autowired
 private RemoveProductAfterPurchase removeProductAfterPurchase;
 
@@ -333,10 +262,6 @@ private RemoveProductAfterPurchase removeProductAfterPurchase;
 
         return response;
     }
-
-
-
-
 
     @Transactional
     public SignUpResponseDTO increaseProductQuantity(String token, Long productId, int quantity) {
