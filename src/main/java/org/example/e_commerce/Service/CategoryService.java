@@ -97,6 +97,9 @@ public class CategoryService {
                     CategoryRequestDTO dto = new CategoryRequestDTO();
                     dto.setName(category.getName());
                     dto.setImageurl(category.getImage_url());
+                    dto.setDiscount(category.getDiscount());
+                    dto.setDescription(category.getDescription());
+                    dto.setMarket_image(category.getMarketImage());
                     return dto;
                 })
                 .collect(Collectors.toList());
