@@ -7,10 +7,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CategoryRequestDTO {
+    private long store_id;
     @NotBlank(message = "Category name is mandatory")
     private String name;
     private String imageurl;
     private String description;
     private String market_image;
     private Double discount;
+
 }

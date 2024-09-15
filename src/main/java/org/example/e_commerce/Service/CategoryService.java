@@ -95,6 +95,7 @@ public class CategoryService {
         return categories.stream()
                 .map(category -> {
                     CategoryRequestDTO dto = new CategoryRequestDTO();
+                    dto.setStore_id(category.getCategoryid());
                     dto.setName(category.getName());
                     dto.setImageurl(category.getImage_url());
                     dto.setDiscount(category.getDiscount());
