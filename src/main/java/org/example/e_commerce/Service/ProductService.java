@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,13 +58,18 @@ public class ProductService {
             return responseDTO;
         }
 
-        if (isProductDTOInvalid(productDTO)) {
+
+        if (productDTO.getProductName() == null || productDTO.getPrice() == null ||
+                productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
+                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null ||
+                productDTO.getMainImageUrl() == null) {
             responseDTO.setMessage("Fill the data");
             responseDTO.setStatusCode(-1);
             return responseDTO;
         }
 
-        if (productRepository.findByProductName(productDTO.getProductName()).isPresent()) {
+        Product productExist = productRepository.findByProductName(productDTO.getProductName());
+        if (productExist != null) {
             responseDTO.setMessage("Product Already Exists. Update if you want");
             responseDTO.setStatusCode(-2);
             return responseDTO;
@@ -78,9 +84,21 @@ public class ProductService {
 
         Product productNew = modelMapper.map(productDTO, Product.class);
         productNew.setCategory(category);
+
+        // Set freshCollection to true and set the freshSince timestamp
+        productNew.setFreshCollection(true);
+        productNew.setFreshSince(LocalDateTime.now());
+
         productRepository.save(productNew);
 
-        saveProductImages(productDTO.getImageUrls(), productNew);
+        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
+            for (String imageUrl : productDTO.getImageUrls()) {
+                ProductImages productImage = new ProductImages();
+                productImage.setProduct(productNew);
+                productImage.setImageUrl(imageUrl);
+                productImagesRepository.save(productImage);
+            }
+        }
 
         responseDTO.setMessage("Product added successfully");
         responseDTO.setStatusCode(0);
@@ -97,9 +115,7 @@ public class ProductService {
             return responseDTO;
         }
 
-        Product productExist = productRepository.findByProductName(productDTO.getProductName())
-                .orElse(null);
-
+        Product productExist = productRepository.findByProductName(productDTO.getProductName());
         if (productExist == null) {
             responseDTO.setMessage("Product didn't exist. Please add product");
             responseDTO.setStatusCode(-4);
@@ -113,10 +129,23 @@ public class ProductService {
             return responseDTO;
         }
 
-        updateProductDetails(productExist, productDTO, category);
+        productExist.setCategory(category);
+        productExist.setPrice(productDTO.getPrice());
+        productExist.setDescription(productDTO.getDescription());
+        productExist.setWarrantyPeriod(productDTO.getWarrantyPeriod());
+        productExist.setManufacturer(productDTO.getManufacturer());
+        productExist.setStockQuantity(productDTO.getStockQuantity());
+
         productRepository.save(productExist);
 
-        saveProductImages(productDTO.getImageUrls(), productExist);
+        if (productDTO.getImageUrls() != null && !productDTO.getImageUrls().isEmpty()) {
+            for (String imageUrl : productDTO.getImageUrls()) {
+                ProductImages productImage = new ProductImages();
+                productImage.setProduct(productExist);
+                productImage.setImageUrl(imageUrl);
+                productImagesRepository.save(productImage);
+            }
+        }
 
         responseDTO.setMessage("Product updated successfully");
         responseDTO.setStatusCode(0);
@@ -248,33 +277,9 @@ public class ProductService {
         return new ProductsResponseDTO(0L, "Products retrieved successfully", productDTOs);
     }
 
-    // Utility methods for common logic
-    private boolean isProductDTOInvalid(ProductRequestDTO productDTO) {
-        return productDTO.getProductName() == null || productDTO.getPrice() == null ||
-                productDTO.getDescription() == null || productDTO.getCategoryID() == null ||
-                productDTO.getWarrantyPeriod() == null || productDTO.getManufacturer() == null ||
-                productDTO.getMainImageUrl() == null;
-    }
 
-    private void saveProductImages(List<String> imageUrls, Product product) {
-        if (imageUrls != null && !imageUrls.isEmpty()) {
-            imageUrls.forEach(url -> {
-                ProductImages image = new ProductImages();
-                image.setImageUrl(url);
-                image.setProduct(product);
-                productImagesRepository.save(image);
-            });
-        }
-    }
-
-    private void updateProductDetails(Product existingProduct, ProductRequestDTO productDTO, Category category) {
-        existingProduct.setProductName(productDTO.getProductName());
-        existingProduct.setDescription(productDTO.getDescription());
-        existingProduct.setPrice(productDTO.getPrice());
-        existingProduct.setStockQuantity(productDTO.getStockQuantity());
-        existingProduct.setCategory(category);
-        existingProduct.setWarrantyPeriod(productDTO.getWarrantyPeriod());
-        existingProduct.setManufacturer(productDTO.getManufacturer());
-        existingProduct.setImageUrl(productDTO.getMainImageUrl());
+    public List<Product> getFreshCollections() {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30); // Set cutoff date to 30 days ago
+        return productRepository.findFreshCollections(cutoffDate);
     }
 }

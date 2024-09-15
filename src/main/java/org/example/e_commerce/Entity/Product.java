@@ -53,6 +53,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -95,4 +96,9 @@ public class Product {
     @JsonManagedReference
     private List<ProductImages> productImages;
 
+    @Column(name = "frsh_collection", nullable = false)
+    private Boolean freshCollection = false; // Default to false
+
+    @Column(name = "fresh_since")
+    private LocalDateTime freshSince;
 }

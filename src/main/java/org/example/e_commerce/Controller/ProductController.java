@@ -86,4 +86,13 @@ public class ProductController {
         }
         return ResponseEntity.ok(products);
     }
+
+    @GetMapping("/fresh_collections")
+    public ResponseEntity<List<Product>> getFreshCollections() {
+        List<Product> freshCollections = productService.getFreshCollections();
+        if (freshCollections.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(freshCollections);
+    }
 }

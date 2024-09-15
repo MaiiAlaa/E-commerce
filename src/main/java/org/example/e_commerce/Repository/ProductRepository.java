@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +14,10 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Find a single product by its name
-    Optional<Product> findByProductName(String productName);
+    public Product findByProductName(String productName);
+
+    @Query("SELECT p FROM Product p WHERE p.freshCollection = TRUE AND p.freshSince >= :cutoffDate")
+    List<Product> findFreshCollections(@Param("cutoffDate") LocalDateTime cutoffDate);
 
     // Find products by their ID (usually findById is enough)
     // Consider removing or renaming if not needed
