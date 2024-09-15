@@ -1,9 +1,11 @@
 package org.example.e_commerce.Controller;
 
 import org.example.e_commerce.Entity.Category;
+import org.example.e_commerce.Entity.FreshCollection;
 import org.example.e_commerce.Entity.Product;
 import org.example.e_commerce.Entity.ProductImages;
 import org.example.e_commerce.Repository.CategoryRepository;
+import org.example.e_commerce.Repository.FreshCollectionRepository;
 import org.example.e_commerce.Repository.ProductImagesRepository;
 import org.example.e_commerce.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class FileUploadController {
 
     private static final String UPLOAD_DIR = "/mnt/data/uploads/";
     private static final String SERVER_URL = "https://e-commerce-production-4712.up.railway.app/api/files/";
+
+    @Autowired
+    private FreshCollectionRepository freshCollectionRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -202,6 +207,71 @@ public class FileUploadController {
         }
     }
 
+    @PostMapping("/upload-market-image")
+    public ResponseEntity<String> uploadMarketImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
+        try {
+            // Create upload directory if it doesn't exist
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            // Generate a unique file name for the uploaded image
+            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+
+            // Define the file path
+            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Files.copy(file.getInputStream(), path);
+
+            // Generate the file URL to be stored in the database
+            String fileUrl = SERVER_URL + uniqueFileName;
+
+            // Find the category by its ID
+            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                category.setMarketImage(fileUrl);  // Save the file URL in the marketImage field
+                categoryRepository.save(category);  // Save the category with the updated marketImage URL
+            } else {
+                return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>("Market image uploaded successfully: " + fileUrl, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/upload-collection-image")
+    public ResponseEntity<String> uploadCollectionImage(@RequestParam("file") MultipartFile file, @RequestParam("collectionId") Long collectionId) {
+        try {
+            // Create upload directory if it doesn't exist
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            // Generate a unique file name for the uploaded image
+            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+
+            // Define the file path
+            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Files.copy(file.getInputStream(), path);
+
+            // Generate the file URL to be stored in the database
+            String fileUrl = SERVER_URL + uniqueFileName;
+
+            // Find the FreshCollection by its ID
+            Optional<FreshCollection> collectionOpt = freshCollectionRepository.findById(collectionId);
+            if (collectionOpt.isPresent()) {
+                FreshCollection collection = collectionOpt.get();
+                collection.setImage(fileUrl);  // Save the file URL in the image field
+                freshCollectionRepository.save(collection);  // Save the collection with the updated image URL
+            } else {
+                return new ResponseEntity<>("Collection not found", HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>("Collection image uploaded successfully: " + fileUrl, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @DeleteMapping("/delete-image/{imageId}")
     public ResponseEntity<String> deleteImageById(@PathVariable Long imageId) {
