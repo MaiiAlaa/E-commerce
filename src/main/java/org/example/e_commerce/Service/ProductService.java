@@ -86,8 +86,8 @@ public class ProductService {
         productNew.setCategory(category);
 
         // Set freshCollection to true and set the freshSince timestamp
-        productNew.setFreshCollection(true);
-        productNew.setFreshSince(LocalDateTime.now());
+        //productNew.setFreshCollection(true);
+        //productNew.setFreshSince(LocalDateTime.now());
 
         productRepository.save(productNew);
 
