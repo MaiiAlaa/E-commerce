@@ -38,7 +38,7 @@ public class Category {
 
     @Column(name = "discount", nullable = false, precision = 5, scale = 2)
     private Double discount;
-
+//market_image
     @Column(name = "market_image")
     private String marketImage;
 }
