@@ -202,6 +202,38 @@ public class FileUploadController {
         }
     }
 
+    @PostMapping("/upload-market-image")
+    public ResponseEntity<String> uploadMarketImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
+        try {
+            // Create upload directory if it doesn't exist
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            // Generate a unique file name for the uploaded image
+            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+
+            // Define the file path
+            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
+            Files.copy(file.getInputStream(), path);
+
+            // Generate the file URL to be stored in the database
+            String fileUrl = SERVER_URL + uniqueFileName;
+
+            // Find the category by its ID
+            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+            if (categoryOpt.isPresent()) {
+                Category category = categoryOpt.get();
+                category.setMarketImage(fileUrl);  // Save the file URL in the marketImage field
+                categoryRepository.save(category);  // Save the category with the updated marketImage URL
+            } else {
+                return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>("Market image uploaded successfully: " + fileUrl, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @DeleteMapping("/delete-image/{imageId}")
     public ResponseEntity<String> deleteImageById(@PathVariable Long imageId) {
