@@ -32,4 +32,13 @@ public class Category {
     @NotBlank(message = "Category Image is mandatory")
     @Column(name = "imageurl")
     private String image_url;
+
+    @Column(name = "description", nullable = false, length = 1000)
+    private String description;
+
+    @Column(name = "discount", nullable = false, precision = 5, scale = 2)
+    private Double discount;
+
+    @Column(name = "market_image")
+    private String marketImage;
 }

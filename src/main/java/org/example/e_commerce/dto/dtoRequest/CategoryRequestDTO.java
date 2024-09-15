@@ -10,4 +10,7 @@ public class CategoryRequestDTO {
     @NotBlank(message = "Category name is mandatory")
     private String name;
     private String imageurl;
+    private String description;
+    private String market_image;
+    private Double discount;
 }
