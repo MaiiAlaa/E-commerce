@@ -168,7 +168,6 @@ public class FileUploadController {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    // Category Image Upload API
     @PostMapping("/upload-category-image")
     public ResponseEntity<String> uploadCategoryImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
         try {
@@ -204,7 +203,8 @@ public class FileUploadController {
 
     @PostMapping("/upload-market-image")
     public ResponseEntity<String> uploadMarketImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
-        try {
+        try
+        {
             // Create upload directory if it doesn't exist
             Files.createDirectories(Paths.get(UPLOAD_DIR));
 
