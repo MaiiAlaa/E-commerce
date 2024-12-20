@@ -277,9 +277,4 @@ public class ProductService {
         return new ProductsResponseDTO(0L, "Products retrieved successfully", productDTOs);
     }
 
-
-    public List<Product> getFreshCollections() {
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30); // Set cutoff date to 30 days ago
-        return productRepository.findFreshCollections(cutoffDate);
-    }
 }

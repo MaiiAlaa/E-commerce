@@ -96,9 +96,4 @@ public class Product {
     @JsonManagedReference
     private List<ProductImages> productImages;
 
-    @Column(name = "frsh_collection", nullable = false)
-    private Boolean freshCollection = false; // Default to false
-
-    @Column(name = "fresh_since")
-    private LocalDateTime freshSince;
 }

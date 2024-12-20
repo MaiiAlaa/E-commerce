@@ -223,7 +223,6 @@ public class FileUploadController {
             Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
             if (categoryOpt.isPresent()) {
                 Category category = categoryOpt.get();
-                category.setMarketImage(fileUrl);  // Save the file URL in the marketImage field
                 categoryRepository.save(category);  // Save the category with the updated marketImage URL
             } else {
                 return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);

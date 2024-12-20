@@ -16,16 +16,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Find a single product by its name
     public Product findByProductName(String productName);
 
-    @Query("SELECT p FROM Product p WHERE p.freshCollection = TRUE AND p.freshSince >= :cutoffDate")
-    List<Product> findFreshCollections(@Param("cutoffDate") LocalDateTime cutoffDate);
-
     // Find products by their ID (usually findById is enough)
     // Consider removing or renaming if not needed
     @Override
     Optional<Product> findById(Long id);
 
     // Find products by category ID using a custom query
-    @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId")
+    @Query("SELECT p FROM Product p WHERE p.category.categoryid = :categoryId")
     List<Product> findProductByCategoryId(@Param("categoryId") Long categoryId);
 
     // Search products by name or manufacturer using a custom query
