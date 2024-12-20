@@ -29,53 +29,40 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/files")
 public class FileUploadController {
 
-    private static final String UPLOAD_DIR = "/mnt/data/uploads/";
-    private static final String SERVER_URL = "https://e-commerce-production-4712.up.railway.app/api/files/";
-
+    private static final String UPLOAD_DIR = "uploads/";
     @Autowired
     private ProductRepository productRepository;
-
     @PostMapping("/upload")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") Long productId) {
-        try
-        {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
-            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-
+        try {
+            String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
             Files.copy(file.getInputStream(), path);
-
-            // Build the file URL to be stored in the database
-            String fileUrl = SERVER_URL + uniqueFileName;
-
             // Find the product by its ID
             Optional<Product> productOpt = productRepository.findById(productId);
             if (productOpt.isPresent()) {
                 Product product = productOpt.get();
-                product.setImageUrl(fileUrl);  // Save the file URL instead of the file path
-                productRepository.save(product);  // Save the product with the updated image URL
+
+                // Assign the file path as the image URL
+                product.setImageUrl(path.toString());
+
+                // Save the updated product back to the database
+                productRepository.save(product);
             } else {
                 return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
             }
-
-            return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
-        }
-        catch (Exception e)
-        {
+            return new ResponseEntity<>("File uploaded successfully: " + path.toString(), HttpStatus.OK);
+        } catch (Exception e) {
             return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 
     @GetMapping("/image/{productId}")
     public ResponseEntity<byte[]> getImage(@PathVariable Long productId) {
         Optional<Product> productOpt = productRepository.findById(productId);
         if (productOpt.isPresent()) {
             String imageUrl = productOpt.get().getImageUrl();
-            Path imagePath = Paths.get(UPLOAD_DIR).resolve(imageUrl.substring(SERVER_URL.length()));
-
+            Path imagePath = Paths.get(imageUrl);
 
             try {
                 byte[] imageBytes = Files.readAllBytes(imagePath);
@@ -92,36 +79,35 @@ public class FileUploadController {
     }
 
 
-//    @GetMapping("/{filename}")
-//    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
-//        try {
-//            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
-//            Resource resource = new UrlResource(filePath.toUri());
-//
-//            if (resource.exists() && resource.isReadable()) {
-//                // Determine the file's content type
-//                String contentType = Files.probeContentType(filePath);
-//                if (contentType == null) {
-//                    contentType = "application/octet-stream"; // Default to binary stream if unknown
-//                }
-//
-//                return ResponseEntity.ok()
-//                        .contentType(MediaType.parseMediaType(contentType))
-//                        .body(resource);
-//            } else {
-//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//            }
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+    @GetMapping("file/{filename}")
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                // Determine the file's content type
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream"; // Default to binary stream if unknown
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(resource);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @Autowired
     private ProductImagesRepository productImageRepository;
     @PostMapping("/upload-images")
     public ResponseEntity<String> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files, @RequestParam("productId") Long productId) {
         try {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
             Optional<Product> productOpt = productRepository.findById(productId);
             if (!productOpt.isPresent()) {
                 return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
@@ -129,16 +115,13 @@ public class FileUploadController {
 
             Product product = productOpt.get();
             for (MultipartFile file : files) {
-                String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
-                String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-
+                String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
                 Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
                 Files.copy(file.getInputStream(), path);
-                // Build the file URL to be stored in the database
-                String fileUrl = SERVER_URL + uniqueFileName;
+
                 ProductImages productImage = new ProductImages();
                 productImage.setProduct(product);
-                productImage.setImageUrl(fileUrl);
+                productImage.setImageUrl(path.toString());
 
                 productImageRepository.save(productImage);
             }
@@ -165,75 +148,6 @@ public class FileUploadController {
         }
     }
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @PostMapping("/upload-category-image")
-    public ResponseEntity<String> uploadCategoryImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
-        try {
-            // Create upload directory if it doesn't exist
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
-
-            // Generate a unique file name for the uploaded image
-            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-
-            // Define the file path
-            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
-            Files.copy(file.getInputStream(), path);
-
-            // Generate the file URL to be stored in the database
-            String fileUrl = SERVER_URL + uniqueFileName;
-
-            // Find the category by its ID
-            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
-            if (categoryOpt.isPresent()) {
-                Category category = categoryOpt.get();
-                category.setImage_url(fileUrl);  // Save the file URL instead of the file path
-                categoryRepository.save(category);  // Save the category with the updated image URL
-            } else {
-                return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
-            }
-
-            return new ResponseEntity<>("File uploaded successfully: " + fileUrl, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/upload-market-image")
-    public ResponseEntity<String> uploadMarketImage(@RequestParam("file") MultipartFile file, @RequestParam("categoryId") Long categoryId) {
-        try
-        {
-            // Create upload directory if it doesn't exist
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
-
-            // Generate a unique file name for the uploaded image
-            String originalFileName = file.getOriginalFilename().replaceAll("\\s+", "");
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-
-            // Define the file path
-            Path path = Paths.get(UPLOAD_DIR + uniqueFileName);
-            Files.copy(file.getInputStream(), path);
-
-            // Generate the file URL to be stored in the database
-            String fileUrl = SERVER_URL + uniqueFileName;
-
-            // Find the category by its ID
-            Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
-            if (categoryOpt.isPresent()) {
-                Category category = categoryOpt.get();
-                categoryRepository.save(category);  // Save the category with the updated marketImage URL
-            } else {
-                return new ResponseEntity<>("Category not found", HttpStatus.NOT_FOUND);
-            }
-
-            return new ResponseEntity<>("Market image uploaded successfully: " + fileUrl, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("File upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @DeleteMapping("/delete-image/{imageId}")
     public ResponseEntity<String> deleteImageById(@PathVariable Long imageId) {
         Optional<ProductImages> productImageOpt = productImageRepository.findById(imageId);
@@ -245,24 +159,4 @@ public class FileUploadController {
             return new ResponseEntity<>("Image ID not found", HttpStatus.NOT_FOUND);
         }
     }
-
-    @GetMapping("/{filename:.+}")
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
-        try {
-
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename).normalize();
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(Files.probeContentType(filePath)))
-                        .body(resource);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }
-//comment
